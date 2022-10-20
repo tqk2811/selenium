@@ -17,6 +17,8 @@
 // </copyright>
 
 
+using OpenQA.Selenium;
+
 namespace Selenium.Internal.SeleniumEmulation
 {
     /// <summary>
@@ -31,7 +33,7 @@ namespace Selenium.Internal.SeleniumEmulation
         /// <param name="locator">The first parameter to the command.</param>
         /// <param name="value">The second parameter to the command.</param>
         /// <returns>The result of the command.</returns>
-        protected override object HandleSeleneseCommand(OpenQA.Selenium.IWebDriver driver, string locator, string value)
+        protected override object HandleSeleneseCommand(IWebDriver driver, string locator, string value)
         {
             return driver.Manage().Cookies.GetCookieNamed(locator) == null ? false : true;
         }
