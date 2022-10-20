@@ -17,6 +17,7 @@
 // </copyright>
 
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
@@ -45,11 +46,11 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="frameIndex">The index of the </param>
         /// <returns>A WebDriver instance that is currently in use</returns>
-        public IWebDriver Frame(int frameIndex)
+        public async Task<IWebDriver> FrameAsync(int frameIndex)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", frameIndex);
-            this.driver.InternalExecute(DriverCommand.SwitchToFrame, parameters);
+            await this.driver.InternalExecuteAsync(DriverCommand.SwitchToFrame, parameters).ConfigureAwait(false);
             return this.driver;
         }
 
@@ -58,7 +59,7 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="frameName">name of the frame</param>
         /// <returns>A WebDriver instance that is currently in use</returns>
-        public IWebDriver Frame(string frameName)
+        public async Task<IWebDriver> FrameAsync(string frameName)
         {
             if (frameName == null)
             {
@@ -66,17 +67,17 @@ namespace OpenQA.Selenium
             }
 
             string name = Regex.Replace(frameName, @"(['""\\#.:;,!?+<>=~*^$|%&@`{}\-/\[\]\(\)])", @"\$1");
-            ReadOnlyCollection<IWebElement> frameElements = this.driver.FindElements(By.CssSelector("frame[name='" + name + "'],iframe[name='" + name + "']"));
+            ReadOnlyCollection<IWebElement> frameElements = await this.driver.FindElementsAsync(By.CssSelector("frame[name='" + name + "'],iframe[name='" + name + "']")).ConfigureAwait(false);
             if (frameElements.Count == 0)
             {
-                frameElements = this.driver.FindElements(By.CssSelector("frame#" + name + ",iframe#" + name));
+                frameElements = await this.driver.FindElementsAsync(By.CssSelector("frame#" + name + ",iframe#" + name)).ConfigureAwait(false);
                 if (frameElements.Count == 0)
                 {
                     throw new NoSuchFrameException("No frame element found with name or id " + frameName);
                 }
             }
 
-            return this.Frame(frameElements[0]);
+            return await this.FrameAsync(frameElements[0]).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="frameElement">a previously found FRAME or IFRAME element.</param>
         /// <returns>A WebDriver instance that is currently in use.</returns>
-        public IWebDriver Frame(IWebElement frameElement)
+        public async Task<IWebDriver> FrameAsync(IWebElement frameElement)
         {
             if (frameElement == null)
             {
@@ -110,7 +111,7 @@ namespace OpenQA.Selenium
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", elementDictionary);
-            this.driver.InternalExecute(DriverCommand.SwitchToFrame, parameters);
+            await this.driver.InternalExecuteAsync(DriverCommand.SwitchToFrame, parameters).ConfigureAwait(false);
             return this.driver;
         }
 
@@ -118,10 +119,10 @@ namespace OpenQA.Selenium
         /// Select the parent frame of the currently selected frame.
         /// </summary>
         /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
-        public IWebDriver ParentFrame()
+        public async Task<IWebDriver> ParentFrameAsync()
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
-            this.driver.InternalExecute(DriverCommand.SwitchToParentFrame, parameters);
+            await this.driver.InternalExecuteAsync(DriverCommand.SwitchToParentFrame, parameters).ConfigureAwait(false);
             return this.driver;
         }
 
@@ -130,13 +131,13 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="windowHandleOrName">Window handle or name of the window that you wish to move to</param>
         /// <returns>A WebDriver instance that is currently in use</returns>
-        public IWebDriver Window(string windowHandleOrName)
+        public async Task<IWebDriver> WindowAsync(string windowHandleOrName)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("handle", windowHandleOrName);
             try
             {
-                this.driver.InternalExecute(DriverCommand.SwitchToWindow, parameters);
+                await this.driver.InternalExecuteAsync(DriverCommand.SwitchToWindow, parameters).ConfigureAwait(false);
                 return this.driver;
             }
             catch (NoSuchWindowException)
@@ -153,8 +154,8 @@ namespace OpenQA.Selenium
 
                 foreach (string handle in this.driver.WindowHandles)
                 {
-                    this.Window(handle);
-                    if (windowHandleOrName == this.driver.ExecuteScript("return window.name").ToString())
+                    await this.WindowAsync(handle).ConfigureAwait(false);
+                    if (windowHandleOrName == (await this.driver.ExecuteScriptAsync("return window.name").ConfigureAwait(false)).ToString())
                     {
                         return this.driver; // found by name
                     }
@@ -162,7 +163,7 @@ namespace OpenQA.Selenium
 
                 if (original != null)
                 {
-                    this.Window(original);
+                    await this.WindowAsync(original).ConfigureAwait(false);
                 }
 
                 throw;
@@ -178,14 +179,14 @@ namespace OpenQA.Selenium
         /// the driver does not support the requested type, a new browser window
         /// will be created of whatever type the driver does support.</param>
         /// <returns>An <see cref="IWebDriver"/> instance focused on the new browser.</returns>
-        public IWebDriver NewWindow(WindowType typeHint)
+        public async Task<IWebDriver> NewWindowAsync(WindowType typeHint)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("type", typeHint.ToString().ToLowerInvariant());
-            Response response = this.driver.InternalExecute(DriverCommand.NewWindow, parameters);
+            Response response = await this.driver.InternalExecuteAsync(DriverCommand.NewWindow, parameters).ConfigureAwait(false);
             Dictionary<string, object> result = response.Value as Dictionary<string, object>;
             string newWindowHandle = result["handle"].ToString();
-            this.Window(newWindowHandle);
+            await this.WindowAsync(newWindowHandle).ConfigureAwait(false);
             return this.driver;
         }
 
@@ -193,11 +194,11 @@ namespace OpenQA.Selenium
         /// Change the active frame to the default
         /// </summary>
         /// <returns>Element of the default</returns>
-        public IWebDriver DefaultContent()
+        public async Task<IWebDriver> DefaultContentAsync()
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", null);
-            this.driver.InternalExecute(DriverCommand.SwitchToFrame, parameters);
+            await this.driver.InternalExecuteAsync(DriverCommand.SwitchToFrame, parameters).ConfigureAwait(false);
             return this.driver;
         }
 
@@ -205,9 +206,9 @@ namespace OpenQA.Selenium
         /// Finds the active element on the page and returns it
         /// </summary>
         /// <returns>Element that is active</returns>
-        public IWebElement ActiveElement()
+        public async Task<IWebElement> ActiveElementAsync()
         {
-            Response response = this.driver.InternalExecute(DriverCommand.GetActiveElement, null);
+            Response response = await this.driver.InternalExecuteAsync(DriverCommand.GetActiveElement, null).ConfigureAwait(false);
             return this.driver.GetElementFromResponse(response);
         }
 
@@ -215,11 +216,11 @@ namespace OpenQA.Selenium
         /// Switches to the currently active modal dialog for this particular driver instance.
         /// </summary>
         /// <returns>A handle to the dialog.</returns>
-        public IAlert Alert()
+        public async Task<IAlert> AlertAsync()
         {
             // N.B. We only execute the GetAlertText command to be able to throw
             // a NoAlertPresentException if there is no alert found.
-            this.driver.InternalExecute(DriverCommand.GetAlertText, null);
+            await this.driver.InternalExecuteAsync(DriverCommand.GetAlertText, null).ConfigureAwait(false);
             return new Alert(this.driver);
         }
     }

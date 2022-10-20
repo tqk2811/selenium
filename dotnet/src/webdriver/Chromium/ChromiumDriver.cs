@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Remote;
 
@@ -166,7 +167,7 @@ namespace OpenQA.Selenium.Chromium
         {
             get
             {
-                Response response = this.Execute(GetNetworkConditionsCommand, null);
+                Response response = this.ExecuteAsync(GetNetworkConditionsCommand, null).ConfigureAwait(false).GetAwaiter().GetResult();
                 return ChromiumNetworkConditions.FromDictionary(response.Value as Dictionary<string, object>);
             }
 
@@ -179,7 +180,7 @@ namespace OpenQA.Selenium.Chromium
 
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters["network_conditions"] = value;
-                this.Execute(SetNetworkConditionsCommand, parameters);
+                this.ExecuteAsync(SetNetworkConditionsCommand, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -188,6 +189,13 @@ namespace OpenQA.Selenium.Chromium
         /// </summary>
         /// <param name="id">ID of the chromium app to launch.</param>
         public void LaunchApp(string id)
+            => LaunchAppAsync(id).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Launches a Chromium based application.
+        /// </summary>
+        /// <param name="id">ID of the chromium app to launch.</param>
+        public Task LaunchAppAsync(string id)
         {
             if (id == null)
             {
@@ -196,7 +204,7 @@ namespace OpenQA.Selenium.Chromium
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["id"] = id;
-            this.Execute(LaunchAppCommand, parameters);
+            return this.ExecuteAsync(LaunchAppCommand, parameters);
         }
 
         /// <summary>
@@ -205,6 +213,14 @@ namespace OpenQA.Selenium.Chromium
         /// <param name="permissionName">Name of item to set the permission on.</param>
         /// <param name="permissionValue">Value to set the permission to.</param>
         public void SetPermission(string permissionName, string permissionValue)
+            => SetPermissionAsync(permissionName, permissionValue).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Set supported permission on browser.
+        /// </summary>
+        /// <param name="permissionName">Name of item to set the permission on.</param>
+        /// <param name="permissionValue">Value to set the permission to.</param>
+        public Task SetPermissionAsync(string permissionName, string permissionValue)
         {
             if (permissionName == null)
             {
@@ -221,7 +237,7 @@ namespace OpenQA.Selenium.Chromium
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["descriptor"] = nameParameter;
             parameters["state"] = permissionValue;
-            this.Execute(SetPermissionCommand, parameters);
+            return this.ExecuteAsync(SetPermissionCommand, parameters);
         }
 
         /// <summary>
@@ -231,6 +247,15 @@ namespace OpenQA.Selenium.Chromium
         /// <param name="commandParameters">Parameters of the command to execute.</param>
         /// <returns>An object representing the result of the command, if applicable.</returns>
         public object ExecuteCdpCommand(string commandName, Dictionary<string, object> commandParameters)
+            => ExecuteCdpCommandAsync(commandName, commandParameters).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Executes a custom Chrome Dev Tools Protocol Command.
+        /// </summary>
+        /// <param name="commandName">Name of the command to execute.</param>
+        /// <param name="commandParameters">Parameters of the command to execute.</param>
+        /// <returns>An object representing the result of the command, if applicable.</returns>
+        public async Task<object> ExecuteCdpCommandAsync(string commandName, Dictionary<string, object> commandParameters)
         {
             if (commandName == null)
             {
@@ -240,7 +265,7 @@ namespace OpenQA.Selenium.Chromium
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["cmd"] = commandName;
             parameters["params"] = commandParameters;
-            Response response = this.Execute(ExecuteCdp, parameters);
+            Response response = await this.ExecuteAsync(ExecuteCdp, parameters).ConfigureAwait(false);
             return response.Value;
         }
 
@@ -249,9 +274,9 @@ namespace OpenQA.Selenium.Chromium
         /// </summary>
         /// <param name="devToolsProtocolVersion">The version of the Chromium Developer Tools protocol to use. Defaults to autodetect the protocol version.</param>
         /// <returns>The active session to use to communicate with the Chromium Developer Tools debugging protocol.</returns>
-        public DevToolsSession GetDevToolsSession()
+        public Task<DevToolsSession> GetDevToolsSessionAsync()
         {
-            return GetDevToolsSession(DevToolsSession.AutoDetectDevToolsProtocolVersion);
+            return GetDevToolsSessionAsync(DevToolsSession.AutoDetectDevToolsProtocolVersion);
         }
 
         /// <summary>
@@ -259,7 +284,7 @@ namespace OpenQA.Selenium.Chromium
         /// </summary>
         /// <param name="devToolsProtocolVersion">The version of the Chromium Developer Tools protocol to use. Defaults to autodetect the protocol version.</param>
         /// <returns>The active session to use to communicate with the Chromium Developer Tools debugging protocol.</returns>
-        public DevToolsSession GetDevToolsSession(int devToolsProtocolVersion)
+        public async Task<DevToolsSession> GetDevToolsSessionAsync(int devToolsProtocolVersion)
         {
             if (this.devToolsSession == null)
             {
@@ -283,7 +308,7 @@ namespace OpenQA.Selenium.Chromium
                 try
                 {
                     DevToolsSession session = new DevToolsSession(debuggerAddress);
-                    session.StartSession(devToolsProtocolVersion).ConfigureAwait(false).GetAwaiter().GetResult();
+                    await session.StartSession(devToolsProtocolVersion).ConfigureAwait(false);
                     this.devToolsSession = session;
                 }
                 catch (Exception e)
@@ -298,11 +323,11 @@ namespace OpenQA.Selenium.Chromium
         /// <summary>
         /// Closes a DevTools session.
         /// </summary>
-        public void CloseDevToolsSession()
+        public async Task CloseDevToolsSessionAsync()
         {
             if (this.devToolsSession != null)
             {
-                this.devToolsSession.StopSession(true).ConfigureAwait(false).GetAwaiter().GetResult();
+                await this.devToolsSession.StopSession(true).ConfigureAwait(false);
             }
         }
 
@@ -310,8 +335,14 @@ namespace OpenQA.Selenium.Chromium
         /// Clears simulated network conditions.
         /// </summary>
         public void ClearNetworkConditions()
+            => ClearNetworkConditionsAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Clears simulated network conditions.
+        /// </summary>
+        public Task ClearNetworkConditionsAsync()
         {
-            this.Execute(DeleteNetworkConditionsCommand, null);
+            return this.ExecuteAsync(DeleteNetworkConditionsCommand, null);
         }
 
         /// <summary>
@@ -319,9 +350,16 @@ namespace OpenQA.Selenium.Chromium
         /// </summary>
         /// <returns>The list of available sinks.</returns>
         public List<Dictionary<string, string>> GetCastSinks()
+            => GetCastSinksAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Returns the list of cast sinks (Cast devices) available to the Chrome media router.
+        /// </summary>
+        /// <returns>The list of available sinks.</returns>
+        public async Task<List<Dictionary<string, string>>> GetCastSinksAsync()
         {
             List<Dictionary<string, string>> returnValue = new List<Dictionary<string, string>>();
-            Response response = this.Execute(GetCastSinksCommand, null);
+            Response response = await this.ExecuteAsync(GetCastSinksCommand, null).ConfigureAwait(false);
             object[] responseValue = response.Value as object[];
             if (responseValue != null)
             {
@@ -348,6 +386,13 @@ namespace OpenQA.Selenium.Chromium
         /// </summary>
         /// <param name="deviceName">Name of the target sink (device).</param>
         public void SelectCastSink(string deviceName)
+            => SelectCastSinkAsync(deviceName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Selects a cast sink (Cast device) as the recipient of media router intents (connect or play).
+        /// </summary>
+        /// <param name="deviceName">Name of the target sink (device).</param>
+        public Task SelectCastSinkAsync(string deviceName)
         {
             if (deviceName == null)
             {
@@ -356,7 +401,7 @@ namespace OpenQA.Selenium.Chromium
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["sinkName"] = deviceName;
-            this.Execute(SelectCastSinkCommand, parameters);
+            return this.ExecuteAsync(SelectCastSinkCommand, parameters);
         }
 
         /// <summary>
@@ -364,6 +409,13 @@ namespace OpenQA.Selenium.Chromium
         /// </summary>
         /// <param name="deviceName">Name of the target sink (device).</param>
         public void StartTabMirroring(string deviceName)
+            => StartTabMirroringAsync(deviceName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Initiates tab mirroring for the current browser tab on the specified device.
+        /// </summary>
+        /// <param name="deviceName">Name of the target sink (device).</param>
+        public Task StartTabMirroringAsync(string deviceName)
         {
             if (deviceName == null)
             {
@@ -372,7 +424,7 @@ namespace OpenQA.Selenium.Chromium
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["sinkName"] = deviceName;
-            this.Execute(StartCastTabMirroringCommand, parameters);
+            return this.ExecuteAsync(StartCastTabMirroringCommand, parameters);
         }
 
         /// <summary>
@@ -380,6 +432,13 @@ namespace OpenQA.Selenium.Chromium
         /// </summary>
         /// <param name="deviceName">Name of the target sink (device).</param>
         public void StartDesktopMirroring(string deviceName)
+            => StartDesktopMirroringAsync(deviceName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Initiates mirroring of the desktop on the specified device.
+        /// </summary>
+        /// <param name="deviceName">Name of the target sink (device).</param>
+        public Task StartDesktopMirroringAsync(string deviceName)
         {
             if (deviceName == null)
             {
@@ -388,16 +447,23 @@ namespace OpenQA.Selenium.Chromium
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["sinkName"] = deviceName;
-            this.Execute(StartCastDesktopMirroringCommand, parameters);
+            return this.ExecuteAsync(StartCastDesktopMirroringCommand, parameters);
         }
 
         /// <summary>
         /// Returns the error message if there is any issue in a Cast session.
         /// </summary>
         /// <returns>An error message.</returns>
-        public String GetCastIssueMessage()
+        public string GetCastIssueMessage()
+            => GetCastIssueMessageAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Returns the error message if there is any issue in a Cast session.
+        /// </summary>
+        /// <returns>An error message.</returns>
+        public async Task<string> GetCastIssueMessageAsync()
         {
-            Response response = this.Execute(GetCastIssueMessageCommand, null);
+            Response response = await this.ExecuteAsync(GetCastIssueMessageCommand, null).ConfigureAwait(false);
             return (string)response.Value;
         }
 
@@ -406,6 +472,13 @@ namespace OpenQA.Selenium.Chromium
         /// </summary>
         /// <param name="deviceName">Name of the target sink (device).</param>
         public void StopCasting(string deviceName)
+            => StopCastingAsync(deviceName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Stops casting from media router to the specified device, if connected.
+        /// </summary>
+        /// <param name="deviceName">Name of the target sink (device).</param>
+        public Task StopCastingAsync(string deviceName)
         {
             if (deviceName == null)
             {
@@ -414,7 +487,7 @@ namespace OpenQA.Selenium.Chromium
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["sinkName"] = deviceName;
-            this.Execute(StopCastingCommand, parameters);
+            return this.ExecuteAsync(StopCastingCommand, parameters);
         }
 
         protected override void Dispose(bool disposing)

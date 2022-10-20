@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using OpenQA.Selenium.Interactions;
 
 namespace OpenQA.Selenium
@@ -38,11 +39,27 @@ namespace OpenQA.Selenium
         /// Performs the specified list of actions with this action executor.
         /// </summary>
         /// <param name="actionSequenceList">The list of action sequences to perform.</param>
-        void PerformActions(IList<ActionSequence> actionSequenceList);
+        Task PerformActionsAsync(IList<ActionSequence> actionSequenceList);
 
         /// <summary>
         /// Resets the input state of the action executor.
         /// </summary>
-        void ResetInputState();
+        Task ResetInputStateAsync();
+    }
+
+    public static class IActionExecutorExtensions
+    {
+        /// <summary>
+        /// Performs the specified list of actions with this action executor.
+        /// </summary>
+        /// <param name="actionSequenceList">The list of action sequences to perform.</param>
+        public static void PerformActions(this IActionExecutor actionExecutor, IList<ActionSequence> actionSequenceList)
+            => actionExecutor.PerformActionsAsync(actionSequenceList).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Resets the input state of the action executor.
+        /// </summary>
+        public static void ResetInputState(this IActionExecutor actionExecutor)
+             => actionExecutor.ResetInputStateAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

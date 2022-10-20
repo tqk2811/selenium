@@ -17,6 +17,7 @@
 // </copyright>
 
 using System;
+using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 
 namespace OpenQA.Selenium
@@ -94,7 +95,7 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Close the current window, quitting the browser if it is the last window currently open.
         /// </summary>
-        void Close();
+        Task CloseAsync();
 
         /// <summary>
         /// Quits this driver, closing every associated window.
@@ -121,5 +122,14 @@ namespace OpenQA.Selenium
         /// <returns>An <see cref="ITargetLocator"/> object which can be used to select
         /// a frame or window.</returns>
         ITargetLocator SwitchTo();
+    }
+
+    public static class IWebDriverExtensions
+    {
+        /// <summary>
+        /// Close the current window, quitting the browser if it is the last window currently open.
+        /// </summary>
+        public static void Close(this IWebDriver webDriver)
+            => webDriver.CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

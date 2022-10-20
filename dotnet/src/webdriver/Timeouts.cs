@@ -104,7 +104,7 @@ namespace OpenQA.Selenium
 
         private TimeSpan ExecuteGetTimeout(string timeoutType)
         {
-            Response commandResponse = this.driver.InternalExecute(DriverCommand.GetTimeouts, null);
+            Response commandResponse = this.driver.InternalExecuteAsync(DriverCommand.GetTimeouts, null).ConfigureAwait(false).GetAwaiter().GetResult();
             Dictionary<string, object> responseValue = (Dictionary<string, object>)commandResponse.Value;
             if (!responseValue.ContainsKey(timeoutType))
             {
@@ -135,7 +135,7 @@ namespace OpenQA.Selenium
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add(timeoutType, Convert.ToInt64(milliseconds));
-            this.driver.InternalExecute(DriverCommand.SetTimeouts, parameters);
+            this.driver.InternalExecuteAsync(DriverCommand.SetTimeouts, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

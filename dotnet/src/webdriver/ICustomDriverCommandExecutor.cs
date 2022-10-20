@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -31,7 +32,7 @@ namespace OpenQA.Selenium
         /// <param name="driverCommandToExecute">The name of the command to execute. The command name must be registered with the command executor, and must not be a command name known to this driver type.</param>
         /// <param name="parameters">A <see cref="Dictionary{K, V}"/> containing the names and values of the parameters of the command.</param>
         /// <returns>An object that contains the value returned by the command, if any.</returns>
-        object ExecuteCustomDriverCommand(string driverCommandToExecute, Dictionary<string, object> parameters);
+        Task<object> ExecuteCustomDriverCommandAsync(string driverCommandToExecute, Dictionary<string, object> parameters);
 
         /// <summary>
         /// Registers a set of commands to be executed with this driver instance.
@@ -46,5 +47,17 @@ namespace OpenQA.Selenium
         /// <param name="commandInfo">The <see cref="CommandInfo"/> object describing the command.</param>
         /// <returns><see langword="true"/> if the command was registered; otherwise, <see langword="false"/>.</returns>
         bool RegisterCustomDriverCommand(string commandName, CommandInfo commandInfo);
+    }
+
+    public static class ICustomDriverCommandExecutorExtensions
+    {
+        /// <summary>
+        /// Executes a command with this driver.
+        /// </summary>
+        /// <param name="driverCommandToExecute">The name of the command to execute. The command name must be registered with the command executor, and must not be a command name known to this driver type.</param>
+        /// <param name="parameters">A <see cref="Dictionary{K, V}"/> containing the names and values of the parameters of the command.</param>
+        /// <returns>An object that contains the value returned by the command, if any.</returns>
+        public static object ExecuteCustomDriverCommand(this ICustomDriverCommandExecutor customDriverCommandExecutor, string driverCommandToExecute, Dictionary<string, object> parameters)
+            => customDriverCommandExecutor.ExecuteCustomDriverCommandAsync(driverCommandToExecute, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

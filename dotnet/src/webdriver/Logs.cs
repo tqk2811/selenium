@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -48,7 +49,7 @@ namespace OpenQA.Selenium
                 List<string> availableLogTypes = new List<string>();
                 try
                 {
-                    Response commandResponse = this.driver.InternalExecute(DriverCommand.GetAvailableLogTypes, null);
+                    Response commandResponse = this.driver.InternalExecuteAsync(DriverCommand.GetAvailableLogTypes, null).ConfigureAwait(false).GetAwaiter().GetResult();
                     object[] responseValue = commandResponse.Value as object[];
                     if (responseValue != null)
                     {
@@ -73,14 +74,14 @@ namespace OpenQA.Selenium
         /// <param name="logKind">The log for which to retrieve the log entries.
         /// Log types can be found in the <see cref="LogType"/> class.</param>
         /// <returns>The list of <see cref="LogEntry"/> objects for the specified log.</returns>
-        public ReadOnlyCollection<LogEntry> GetLog(string logKind)
+        public async Task<ReadOnlyCollection<LogEntry>> GetLogAsync(string logKind)
         {
             List<LogEntry> entries = new List<LogEntry>();
             try
             {
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("type", logKind);
-                Response commandResponse = this.driver.InternalExecute(DriverCommand.GetLog, parameters);
+                Response commandResponse = await this.driver.InternalExecuteAsync(DriverCommand.GetLog, parameters).ConfigureAwait(false);
 
                 object[] responseValue = commandResponse.Value as object[];
                 if (responseValue != null)

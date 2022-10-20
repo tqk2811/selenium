@@ -18,6 +18,7 @@
 
 using System;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -92,7 +93,7 @@ namespace OpenQA.Selenium
         /// method will clear the value. It has no effect on other elements. Text entry elements
         /// are defined as elements with INPUT or TEXTAREA tags.</remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        void Clear();
+        Task ClearAsync();
 
         /// <summary>
         /// Simulates typing text into the element.
@@ -105,7 +106,7 @@ namespace OpenQA.Selenium
         /// <exception cref="InvalidElementStateException">Thrown when the target element is not enabled.</exception>
         /// <exception cref="ElementNotVisibleException">Thrown when the target element is not visible.</exception>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        void SendKeys(string text);
+        Task SendKeysAsync(string text);
 
         /// <summary>
         /// Submits this element to the web server.
@@ -114,7 +115,7 @@ namespace OpenQA.Selenium
         /// then this will be submitted to the web server. If this causes the current
         /// page to change, then this method will block until the new page is loaded.</remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        void Submit();
+        Task SubmitAsync();
 
         /// <summary>
         /// Clicks this element.
@@ -135,7 +136,7 @@ namespace OpenQA.Selenium
         /// </remarks>
         /// <exception cref="ElementNotVisibleException">Thrown when the target element is not visible.</exception>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        void Click();
+        Task ClickAsync();
 
         /// <summary>
         /// Gets the value of the specified attribute for this element.
@@ -171,7 +172,7 @@ namespace OpenQA.Selenium
         /// </list>
         /// </remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        string GetAttribute(string attributeName);
+        Task<string> GetAttributeAsync(string attributeName);
 
         /// <summary>
         /// Gets the value of a declared HTML attribute of this element.
@@ -186,7 +187,7 @@ namespace OpenQA.Selenium
         /// of an IDL property of the element, either use the <see cref="GetAttribute(string)"/>
         /// method or the <see cref="GetDomProperty(string)"/> method.
         /// </remarks>
-        string GetDomAttribute(string attributeName);
+        Task<string> GetDomAttributeAsync(string attributeName);
 
         /// <summary>
         /// Gets the value of a JavaScript property of this element.
@@ -195,7 +196,7 @@ namespace OpenQA.Selenium
         /// <returns>The JavaScript property's current value. Returns a <see langword="null"/> if the
         /// value is not set or the property does not exist.</returns>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        string GetDomProperty(string propertyName);
+        Task<string> GetDomPropertyAsync(string propertyName);
 
         /// <summary>
         /// Gets the value of a CSS property of this element.
@@ -208,13 +209,157 @@ namespace OpenQA.Selenium
         /// "background-color" property set as "green" in the HTML source, will
         /// return "#008000" for its value.</remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        string GetCssValue(string propertyName);
+        Task<string> GetCssValueAsync(string propertyName);
 
         /// <summary>
         /// Gets the representation of an element's shadow root for accessing the shadow DOM of a web component.
         /// </summary>
         /// <exception cref="NoSuchShadowRootException">Thrown when this element does not have a shadow root.</exception>
         /// <returns>A shadow root representation.</returns>
-        ISearchContext GetShadowRoot();
+        Task<ISearchContext> GetShadowRootAsync();
+    }
+
+    public static class IWebElementExtensions
+    {
+        /// <summary>
+        /// Clears the content of this element.
+        /// </summary>
+        /// <remarks>If this element is a text entry element, the <see cref="Clear"/>
+        /// method will clear the value. It has no effect on other elements. Text entry elements
+        /// are defined as elements with INPUT or TEXTAREA tags.</remarks>
+        /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
+        public static void Clear(this IWebElement webElement)
+            => webElement.ClearAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Simulates typing text into the element.
+        /// </summary>
+        /// <param name="text">The text to type into the element.</param>
+        /// <remarks>The text to be typed may include special characters like arrow keys,
+        /// backspaces, function keys, and so on. Valid special keys are defined in
+        /// <see cref="Keys"/>.</remarks>
+        /// <seealso cref="Keys"/>
+        /// <exception cref="InvalidElementStateException">Thrown when the target element is not enabled.</exception>
+        /// <exception cref="ElementNotVisibleException">Thrown when the target element is not visible.</exception>
+        /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
+        public static void SendKeys(this IWebElement webElement, string text)
+            => webElement.SendKeysAsync(text).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Submits this element to the web server.
+        /// </summary>
+        /// <remarks>If this current element is a form, or an element within a form,
+        /// then this will be submitted to the web server. If this causes the current
+        /// page to change, then this method will block until the new page is loaded.</remarks>
+        /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
+        public static void Submit(this IWebElement webElement)
+            => webElement.SubmitAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Clicks this element.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Click this element. If the click causes a new page to load, the <see cref="Click"/>
+        /// method will attempt to block until the page has loaded. After calling the
+        /// <see cref="Click"/> method, you should discard all references to this
+        /// element unless you know that the element and the page will still be present.
+        /// Otherwise, any further operations performed on this element will have an undefined.
+        /// behavior.
+        /// </para>
+        /// <para>
+        /// If this element is not clickable, then this operation is ignored. This allows you to
+        /// simulate a users to accidentally missing the target when clicking.
+        /// </para>
+        /// </remarks>
+        /// <exception cref="ElementNotVisibleException">Thrown when the target element is not visible.</exception>
+        /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
+        public static void Click(this IWebElement webElement)
+            => webElement.ClickAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Gets the value of the specified attribute for this element.
+        /// </summary>
+        /// <param name="attributeName">The name of the attribute.</param>
+        /// <returns>The attribute's current value. Returns a <see langword="null"/> if the
+        /// value is not set.</returns>
+        /// <remarks>The <see cref="GetAttribute"/> method will return the current value
+        /// of the attribute, even if the value has been modified after the page has been
+        /// loaded. Note that the value of the following attributes will be returned even if
+        /// there is no explicit attribute on the element:
+        /// <list type="table">
+        /// <listheader>
+        /// <term>Attribute name</term>
+        /// <term>Value returned if not explicitly specified</term>
+        /// <term>Valid element types</term>
+        /// </listheader>
+        /// <item>
+        /// <description>checked</description>
+        /// <description>checked</description>
+        /// <description>Check Box</description>
+        /// </item>
+        /// <item>
+        /// <description>selected</description>
+        /// <description>selected</description>
+        /// <description>Options in Select elements</description>
+        /// </item>
+        /// <item>
+        /// <description>disabled</description>
+        /// <description>disabled</description>
+        /// <description>Input and other UI elements</description>
+        /// </item>
+        /// </list>
+        /// </remarks>
+        /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
+        public static string GetAttribute(this IWebElement webElement, string attributeName)
+            => webElement.GetAttributeAsync(attributeName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Gets the value of a declared HTML attribute of this element.
+        /// </summary>
+        /// <param name="attributeName">The name of the HTML attribute to get the value of.</param>
+        /// <returns>The HTML attribute's current value. Returns a <see langword="null"/> if the
+        /// value is not set or the declared attribute does not exist.</returns>
+        /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
+        /// <remarks>
+        /// As opposed to the <see cref="GetAttribute(string)"/> method, this method
+        /// only returns attributes declared in the element's HTML markup. To access the value
+        /// of an IDL property of the element, either use the <see cref="GetAttribute(string)"/>
+        /// method or the <see cref="GetDomProperty(string)"/> method.
+        /// </remarks>
+        public static string GetDomAttribute(this IWebElement webElement, string attributeName)
+            => webElement.GetDomAttributeAsync(attributeName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Gets the value of a JavaScript property of this element.
+        /// </summary>
+        /// <param name="propertyName">The name of the JavaScript property to get the value of.</param>
+        /// <returns>The JavaScript property's current value. Returns a <see langword="null"/> if the
+        /// value is not set or the property does not exist.</returns>
+        /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
+        public static string GetDomProperty(this IWebElement webElement, string propertyName)
+            => webElement.GetDomPropertyAsync(propertyName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Gets the value of a CSS property of this element.
+        /// </summary>
+        /// <param name="propertyName">The name of the CSS property to get the value of.</param>
+        /// <returns>The value of the specified CSS property.</returns>
+        /// <remarks>The value returned by the <see cref="GetCssValue"/>
+        /// method is likely to be unpredictable in a cross-browser environment.
+        /// Color values should be returned as hex strings. For example, a
+        /// "background-color" property set as "green" in the HTML source, will
+        /// return "#008000" for its value.</remarks>
+        /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
+        public static string GetCssValue(this IWebElement webElement, string propertyName)
+            => webElement.GetCssValueAsync(propertyName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Gets the representation of an element's shadow root for accessing the shadow DOM of a web component.
+        /// </summary>
+        /// <exception cref="NoSuchShadowRootException">Thrown when this element does not have a shadow root.</exception>
+        /// <returns>A shadow root representation.</returns>
+        public static ISearchContext GetShadowRoot(this IWebElement webElement)
+            => webElement.GetShadowRootAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

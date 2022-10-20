@@ -16,6 +16,8 @@
 // limitations under the License.
 // </copyright>
 
+using System.Threading.Tasks;
+
 namespace OpenQA.Selenium
 {
     /// <summary>
@@ -29,7 +31,7 @@ namespace OpenQA.Selenium
         /// <param name="frameIndex">The zero-based index of the frame to select.</param>
         /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
         /// <exception cref="NoSuchFrameException">If the frame cannot be found.</exception>
-        IWebDriver Frame(int frameIndex);
+        Task<IWebDriver> FrameAsync(int frameIndex);
 
         /// <summary>
         /// Select a frame by its name or ID.
@@ -37,7 +39,7 @@ namespace OpenQA.Selenium
         /// <param name="frameName">The name of the frame to select.</param>
         /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
         /// <exception cref="NoSuchFrameException">If the frame cannot be found.</exception>
-        IWebDriver Frame(string frameName);
+        Task<IWebDriver> FrameAsync(string frameName);
 
         /// <summary>
         /// Select a frame using its previously located <see cref="IWebElement"/>
@@ -46,13 +48,13 @@ namespace OpenQA.Selenium
         /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
         /// <exception cref="NoSuchFrameException">If the element is neither a FRAME nor an IFRAME element.</exception>
         /// <exception cref="StaleElementReferenceException">If the element is no longer valid.</exception>
-        IWebDriver Frame(IWebElement frameElement);
+        Task<IWebDriver> FrameAsync(IWebElement frameElement);
 
         /// <summary>
         /// Select the parent frame of the currently selected frame.
         /// </summary>
         /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
-        IWebDriver ParentFrame();
+        Task<IWebDriver> ParentFrameAsync();
 
         /// <summary>
         /// Switches the focus of future commands for this driver to the window with the given name.
@@ -60,7 +62,7 @@ namespace OpenQA.Selenium
         /// <param name="windowName">The name of the window to select.</param>
         /// <returns>An <see cref="IWebDriver"/> instance focused on the given window.</returns>
         /// <exception cref="NoSuchWindowException">If the window cannot be found.</exception>
-        IWebDriver Window(string windowName);
+        Task<IWebDriver> WindowAsync(string windowName);
 
         /// <summary>
         /// Creates a new browser window and switches the focus for future commands
@@ -71,13 +73,13 @@ namespace OpenQA.Selenium
         /// the driver does not support the requested type, a new browser window
         /// will be created of whatever type the driver does support.</param>
         /// <returns>An <see cref="IWebDriver"/> instance focused on the new browser.</returns>
-        IWebDriver NewWindow(WindowType typeHint);
+        Task<IWebDriver> NewWindowAsync(WindowType typeHint);
 
         /// <summary>
         /// Selects either the first frame on the page or the main document when a page contains iFrames.
         /// </summary>
         /// <returns>An <see cref="IWebDriver"/> instance focused on the default frame.</returns>
-        IWebDriver DefaultContent();
+        Task<IWebDriver> DefaultContentAsync();
 
         /// <summary>
         /// Switches to the element that currently has the focus, or the body element
@@ -85,12 +87,94 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <returns>An <see cref="IWebElement"/> instance representing the element
         /// with the focus, or the body element if no element with focus can be detected.</returns>
-        IWebElement ActiveElement();
+        Task<IWebElement> ActiveElementAsync();
 
         /// <summary>
         /// Switches to the currently active modal dialog for this particular driver instance.
         /// </summary>
         /// <returns>A handle to the dialog.</returns>
-        IAlert Alert();
+        Task<IAlert> AlertAsync();
+    }
+
+    public static class ITargetLocatorExtensions
+    {
+        /// <summary>
+        /// Select a frame by its (zero-based) index.
+        /// </summary>
+        /// <param name="frameIndex">The zero-based index of the frame to select.</param>
+        /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
+        /// <exception cref="NoSuchFrameException">If the frame cannot be found.</exception>
+        public static IWebDriver Frame(this ITargetLocator targetLocator, int frameIndex)
+            => targetLocator.FrameAsync(frameIndex).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Select a frame by its name or ID.
+        /// </summary>
+        /// <param name="frameName">The name of the frame to select.</param>
+        /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
+        /// <exception cref="NoSuchFrameException">If the frame cannot be found.</exception>
+        public static IWebDriver Frame(this ITargetLocator targetLocator, string frameName)
+            => targetLocator.FrameAsync(frameName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Select a frame using its previously located <see cref="IWebElement"/>
+        /// </summary>
+        /// <param name="frameElement">The frame element to switch to.</param>
+        /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
+        /// <exception cref="NoSuchFrameException">If the element is neither a FRAME nor an IFRAME element.</exception>
+        /// <exception cref="StaleElementReferenceException">If the element is no longer valid.</exception>
+        public static IWebDriver Frame(this ITargetLocator targetLocator, IWebElement frameElement)
+            => targetLocator.FrameAsync(frameElement).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Select the parent frame of the currently selected frame.
+        /// </summary>
+        /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
+        public static IWebDriver ParentFrame(this ITargetLocator targetLocator)
+            => targetLocator.ParentFrameAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Switches the focus of future commands for this driver to the window with the given name.
+        /// </summary>
+        /// <param name="windowHandleOrName">The name of the window to select.</param>
+        /// <returns>An <see cref="IWebDriver"/> instance focused on the given window.</returns>
+        /// <exception cref="NoSuchWindowException">If the window cannot be found.</exception>
+        public static IWebDriver Window(this ITargetLocator targetLocator, string windowHandleOrName)
+            => targetLocator.WindowAsync(windowHandleOrName).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Creates a new browser window and switches the focus for future commands
+        /// of this driver to the new window.
+        /// </summary>
+        /// <param name="typeHint">The type of new browser window to be created.
+        /// The created window is not guaranteed to be of the requested type; if
+        /// the driver does not support the requested type, a new browser window
+        /// will be created of whatever type the driver does support.</param>
+        /// <returns>An <see cref="IWebDriver"/> instance focused on the new browser.</returns>
+        public static IWebDriver NewWindow(this ITargetLocator targetLocator, WindowType typeHint)
+            => targetLocator.NewWindowAsync(typeHint).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Selects either the first frame on the page or the main document when a page contains iFrames.
+        /// </summary>
+        /// <returns>An <see cref="IWebDriver"/> instance focused on the default frame.</returns>
+        public static IWebDriver DefaultContent(this ITargetLocator targetLocator)
+            => targetLocator.DefaultContentAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Switches to the element that currently has the focus, or the body element
+        /// if no element with focus can be detected.
+        /// </summary>
+        /// <returns>An <see cref="IWebElement"/> instance representing the element
+        /// with the focus, or the body element if no element with focus can be detected.</returns>
+        public static IWebElement ActiveElement(this ITargetLocator targetLocator)
+            => targetLocator.ActiveElementAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Switches to the currently active modal dialog for this particular driver instance.
+        /// </summary>
+        /// <returns>A handle to the dialog.</returns>
+        public static IAlert Alert(this ITargetLocator targetLocator)
+            => targetLocator.AlertAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

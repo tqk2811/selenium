@@ -17,6 +17,7 @@
 // </copyright>
 
 using System;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -29,13 +30,13 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Move back a single entry in the browser's history.
         /// </summary>
-        void Back();
+        Task BackAsync();
 
         /// <summary>
         /// Move a single "item" forward in the browser's history.
         /// </summary>
         /// <remarks>Does nothing if we are on the latest page viewed.</remarks>
-        void Forward();
+        Task ForwardAsync();
 
         /// <summary>
         ///  Load a new web page in the current browser window.
@@ -70,6 +71,28 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Refreshes the current page.
         /// </summary>
-        void Refresh();
+        Task RefreshAsync();
+    }
+
+    public static class INavigationExtensions
+    {
+        /// <summary>
+        /// Move back a single entry in the browser's history.
+        /// </summary>
+        public static void Back(this INavigation navigation)
+            => navigation.BackAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Move a single "item" forward in the browser's history.
+        /// </summary>
+        /// <remarks>Does nothing if we are on the latest page viewed.</remarks>
+        public static void Forward(this INavigation navigation)
+            => navigation.ForwardAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Refreshes the current page.
+        /// </summary>
+        public static void Refresh(this INavigation navigation)
+            => navigation.RefreshAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

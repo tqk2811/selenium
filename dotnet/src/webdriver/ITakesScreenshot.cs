@@ -1,4 +1,4 @@
-﻿// <copyright file="ITakesScreenshot.cs" company="WebDriver Committers">
+// <copyright file="ITakesScreenshot.cs" company="WebDriver Committers">
 // Licensed to the Software Freedom Conservancy (SFC) under one
 // or more contributor license agreements. See the NOTICE file
 // distributed with this work for additional information
@@ -16,6 +16,8 @@
 // limitations under the License.
 // </copyright>
 
+using System.Threading.Tasks;
+
 namespace OpenQA.Selenium
 {
     /// <summary>
@@ -27,6 +29,17 @@ namespace OpenQA.Selenium
         /// Gets a <see cref="Screenshot"/> object representing the image of the page on the screen.
         /// </summary>
         /// <returns>A <see cref="Screenshot"/> object containing the image.</returns>
-        Screenshot GetScreenshot();
+        Task<Screenshot> GetScreenshotAsync();
+    }
+
+    public static class ITakesScreenshotExtensions
+    {
+
+        /// <summary>
+        /// Gets a <see cref="Screenshot"/> object representing the image of the page on the screen.
+        /// </summary>
+        /// <returns>A <see cref="Screenshot"/> object containing the image.</returns>
+        public static Screenshot GetScreenshot(this ITakesScreenshot takesScreenshot)
+            => takesScreenshot.GetScreenshotAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

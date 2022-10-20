@@ -25,6 +25,7 @@ using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Internal;
 using OpenQA.Selenium.VirtualAuth;
 using Microsoft.IdentityModel.Tokens;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -52,7 +53,7 @@ namespace OpenQA.Selenium
         protected WebDriver(ICommandExecutor executor, ICapabilities capabilities)
         {
             this.executor = executor;
-            this.StartSession(capabilities);
+            this.StartSessionAsync(capabilities).ConfigureAwait(false).GetAwaiter().GetResult();
             this.elementFactory = new WebElementFactory(this);
             this.network = new NetworkManager(this);
             this.registeredCommands.AddRange(DriverCommand.KnownCommands);
@@ -92,7 +93,7 @@ namespace OpenQA.Selenium
         {
             get
             {
-                Response commandResponse = this.Execute(DriverCommand.GetCurrentUrl, null);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.GetCurrentUrl, null).ConfigureAwait(false).GetAwaiter().GetResult();
                 return commandResponse.Value.ToString();
             }
 
@@ -105,7 +106,7 @@ namespace OpenQA.Selenium
 
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("url", value);
-                this.Execute(DriverCommand.Get, parameters);
+                this.ExecuteAsync(DriverCommand.Get, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -116,7 +117,7 @@ namespace OpenQA.Selenium
         {
             get
             {
-                Response commandResponse = this.Execute(DriverCommand.GetTitle, null);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.GetTitle, null).ConfigureAwait(false).GetAwaiter().GetResult();
                 object returnedTitle = commandResponse != null ? commandResponse.Value : string.Empty;
                 return returnedTitle.ToString();
             }
@@ -131,7 +132,7 @@ namespace OpenQA.Selenium
             get
             {
                 string pageSource = string.Empty;
-                Response commandResponse = this.Execute(DriverCommand.GetPageSource, null);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.GetPageSource, null).ConfigureAwait(false).GetAwaiter().GetResult();
                 pageSource = commandResponse.Value.ToString();
                 return pageSource;
             }
@@ -145,7 +146,7 @@ namespace OpenQA.Selenium
         {
             get
             {
-                Response commandResponse = this.Execute(DriverCommand.GetCurrentWindowHandle, null);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.GetCurrentWindowHandle, null).ConfigureAwait(false).GetAwaiter().GetResult();
                 return commandResponse.Value.ToString();
             }
         }
@@ -157,7 +158,7 @@ namespace OpenQA.Selenium
         {
             get
             {
-                Response commandResponse = this.Execute(DriverCommand.GetWindowHandles, null);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.GetWindowHandles, null).ConfigureAwait(false).GetAwaiter().GetResult();
                 object[] handles = (object[])commandResponse.Value;
                 List<string> handleList = new List<string>();
                 foreach (object handle in handles)
@@ -225,9 +226,9 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Closes the Browser
         /// </summary>
-        public void Close()
+        public Task CloseAsync()
         {
-            this.Execute(DriverCommand.Close, null);
+            return this.ExecuteAsync(DriverCommand.Close, null);
         }
 
         /// <summary>
@@ -246,9 +247,9 @@ namespace OpenQA.Selenium
         /// <param name="script">The JavaScript code to execute.</param>
         /// <param name="args">The arguments to the script.</param>
         /// <returns>The value returned by the script.</returns>
-        public object ExecuteAsyncScript(string script, params object[] args)
+        public Task<object> ExecuteAsyncScriptAsync(string script, params object[] args)
         {
-            return this.ExecuteScriptCommand(script, DriverCommand.ExecuteAsyncScript, args);
+            return this.ExecuteScriptCommandAsync(script, DriverCommand.ExecuteAsyncScript, args);
         }
 
         /// <summary>
@@ -257,9 +258,9 @@ namespace OpenQA.Selenium
         /// <param name="script">The JavaScript code to execute.</param>
         /// <param name="args">The arguments to the script.</param>
         /// <returns>The value returned by the script.</returns>
-        public object ExecuteScript(string script, params object[] args)
+        public Task<object> ExecuteScriptAsync(string script, params object[] args)
         {
-            return this.ExecuteScriptCommand(script, DriverCommand.ExecuteScript, args);
+            return this.ExecuteScriptCommandAsync(script, DriverCommand.ExecuteScript, args);
         }
 
         /// <summary>
@@ -268,9 +269,9 @@ namespace OpenQA.Selenium
         /// <param name="script">A <see cref="PinnedScript"/> object containing the JavaScript code to execute.</param>
         /// <param name="args">The arguments to the script.</param>
         /// <returns>The value returned by the script.</returns>
-        public object ExecuteScript(PinnedScript script, params object[] args)
+        public Task<object> ExecuteScriptAsync(PinnedScript script, params object[] args)
         {
-            return this.ExecuteScript(script.ExecutionScript, args);
+            return this.ExecuteScriptAsync(script.ExecutionScript, args);
         }
 
         /// <summary>
@@ -284,14 +285,14 @@ namespace OpenQA.Selenium
         /// IWebElement elem = driver.FindElement(By.Name("q"));
         /// </code>
         /// </example>
-        public IWebElement FindElement(By by)
+        public Task<IWebElement> FindElementAsync(By by)
         {
             if (by == null)
             {
                 throw new ArgumentNullException(nameof(@by), "by cannot be null");
             }
 
-            return by.FindElement(this);
+            return by.FindElementAsync(this);
         }
 
         /// <summary>
@@ -300,12 +301,12 @@ namespace OpenQA.Selenium
         /// <param name="mechanism">The mechanism by which to find the element.</param>
         /// <param name="value">The value to use to search for the element.</param>
         /// <returns>The first <see cref="IWebElement"/> matching the given criteria.</returns>
-        public virtual IWebElement FindElement(string mechanism, string value)
+        public virtual async Task<IWebElement> FindElementAsync(string mechanism, string value)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("using", mechanism);
             parameters.Add("value", value);
-            Response commandResponse = this.Execute(DriverCommand.FindElement, parameters);
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.FindElement, parameters).ConfigureAwait(false);
             return this.GetElementFromResponse(commandResponse);
         }
 
@@ -320,14 +321,14 @@ namespace OpenQA.Selenium
         /// ReadOnlyCollection<![CDATA[<IWebElement>]]> classList = driver.FindElements(By.ClassName("class"));
         /// </code>
         /// </example>
-        public ReadOnlyCollection<IWebElement> FindElements(By by)
+        public Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(By by)
         {
             if (by == null)
             {
                 throw new ArgumentNullException(nameof(@by), "by cannot be null");
             }
 
-            return by.FindElements(this);
+            return by.FindElementsAsync(this);
         }
 
         /// <summary>
@@ -336,12 +337,12 @@ namespace OpenQA.Selenium
         /// <param name="mechanism">The mechanism by which to find the elements.</param>
         /// <param name="value">The value to use to search for the elements.</param>
         /// <returns>A collection of all of the <see cref="IWebElement">IWebElements</see> matching the given criteria.</returns>
-        public virtual ReadOnlyCollection<IWebElement> FindElements(string mechanism, string value)
+        public virtual async Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(string mechanism, string value)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("using", mechanism);
             parameters.Add("value", value);
-            Response commandResponse = this.Execute(DriverCommand.FindElements, parameters);
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.FindElements, parameters).ConfigureAwait(false);
             return this.GetElementsFromResponse(commandResponse);
         }
 
@@ -349,9 +350,9 @@ namespace OpenQA.Selenium
         /// Gets a <see cref="Screenshot"/> object representing the image of the page on the screen.
         /// </summary>
         /// <returns>A <see cref="Screenshot"/> object containing the image.</returns>
-        public Screenshot GetScreenshot()
+        public async Task<Screenshot> GetScreenshotAsync()
         {
-            Response screenshotResponse = this.Execute(DriverCommand.Screenshot, null);
+            Response screenshotResponse = await this.ExecuteAsync(DriverCommand.Screenshot, null).ConfigureAwait(false);
             string base64 = screenshotResponse.Value.ToString();
             return new Screenshot(base64);
         }
@@ -361,9 +362,9 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="printOptions">A <see cref="PrintOptions"/> object describing the options of the printed document.</param>
         /// <returns>The <see cref="PrintDocument"/> object containing the PDF-formatted print representation of the page.</returns>
-        public PrintDocument Print(PrintOptions printOptions)
+        public async Task<PrintDocument> PrintAsync(PrintOptions printOptions)
         {
-            Response commandResponse = this.Execute(DriverCommand.Print, printOptions.ToDictionary());
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.Print, printOptions.ToDictionary()).ConfigureAwait(false);
             string base64 = commandResponse.Value.ToString();
             return new PrintDocument(base64);
         }
@@ -372,7 +373,7 @@ namespace OpenQA.Selenium
         /// Performs the specified list of actions with this action executor.
         /// </summary>
         /// <param name="actionSequenceList">The list of action sequences to perform.</param>
-        public void PerformActions(IList<ActionSequence> actionSequenceList)
+        public Task PerformActionsAsync(IList<ActionSequence> actionSequenceList)
         {
             if (actionSequenceList == null)
             {
@@ -387,15 +388,15 @@ namespace OpenQA.Selenium
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["actions"] = objectList;
-            this.Execute(DriverCommand.Actions, parameters);
+            return this.ExecuteAsync(DriverCommand.Actions, parameters);
         }
 
         /// <summary>
         /// Resets the input state of the action executor.
         /// </summary>
-        public void ResetInputState()
+        public Task ResetInputStateAsync()
         {
-            this.Execute(DriverCommand.CancelActions, null);
+            return this.ExecuteAsync(DriverCommand.CancelActions, null);
         }
 
         /// <summary>
@@ -437,14 +438,14 @@ namespace OpenQA.Selenium
         /// <param name="driverCommandToExecute">The name of the command to execute. The command name must be registered with the command executor, and must not be a command name known to this driver type.</param>
         /// <param name="parameters">A <see cref="Dictionary{K, V}"/> containing the names and values of the parameters of the command.</param>
         /// <returns>A <see cref="Response"/> containing information about the success or failure of the command and any data returned by the command.</returns>
-        public object ExecuteCustomDriverCommand(string driverCommandToExecute, Dictionary<string, object> parameters)
+        public async Task<object> ExecuteCustomDriverCommandAsync(string driverCommandToExecute, Dictionary<string, object> parameters)
         {
             if (this.registeredCommands.Contains(driverCommandToExecute))
             {
                 throw new WebDriverException(string.Format(CultureInfo.InvariantCulture, "A command named '{0}' is predefined by the driver class and cannot be executed with ExecuteCustomDriverCommand. It should be executed using a named method instead.", driverCommandToExecute));
             }
 
-            return this.Execute(driverCommandToExecute, parameters).Value;
+            return (await this.ExecuteAsync(driverCommandToExecute, parameters).ConfigureAwait(false)).Value;
         }
 
         /// <summary>
@@ -541,9 +542,9 @@ namespace OpenQA.Selenium
         /// <param name="driverCommandToExecute">Command that needs executing</param>
         /// <param name="parameters">Parameters needed for the command</param>
         /// <returns>WebDriver Response</returns>
-        internal Response InternalExecute(string driverCommandToExecute, Dictionary<string, object> parameters)
+        internal Task<Response> InternalExecuteAsync(string driverCommandToExecute, Dictionary<string, object> parameters)
         {
-            return this.Execute(driverCommandToExecute, parameters);
+            return this.ExecuteAsync(driverCommandToExecute, parameters);
         }
 
         /// <summary>
@@ -552,7 +553,7 @@ namespace OpenQA.Selenium
         /// <param name="driverCommandToExecute">A <see cref="DriverCommand"/> value representing the command to execute.</param>
         /// <param name="parameters">A <see cref="Dictionary{K, V}"/> containing the names and values of the parameters of the command.</param>
         /// <returns>A <see cref="Response"/> containing information about the success or failure of the command and any data returned by the command.</returns>
-        protected virtual Response Execute(string driverCommandToExecute, Dictionary<string, object> parameters)
+        protected virtual async Task<Response> ExecuteAsync(string driverCommandToExecute, Dictionary<string, object> parameters)
         {
             Command commandToExecute = new Command(this.sessionId, driverCommandToExecute, parameters);
 
@@ -560,7 +561,7 @@ namespace OpenQA.Selenium
 
             try
             {
-                commandResponse = this.executor.Execute(commandToExecute);
+                commandResponse = await this.executor.ExecuteAsync(commandToExecute).ConfigureAwait(false);
             }
             catch (System.Net.Http.HttpRequestException e)
             {
@@ -583,7 +584,7 @@ namespace OpenQA.Selenium
         /// Starts a session with the driver
         /// </summary>
         /// <param name="desiredCapabilities">Capabilities of the browser</param>
-        protected void StartSession(ICapabilities desiredCapabilities)
+        protected async Task StartSessionAsync(ICapabilities desiredCapabilities)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
 
@@ -610,7 +611,7 @@ namespace OpenQA.Selenium
                 parameters.Add("capabilities", remoteSettings.ToDictionary());
             }
 
-            Response response = this.Execute(DriverCommand.NewSession, parameters);
+            Response response = await this.ExecuteAsync(DriverCommand.NewSession, parameters).ConfigureAwait(false);
 
             Dictionary<string, object> rawCapabilities = response.Value as Dictionary<string, object>;
             if (rawCapabilities == null)
@@ -665,7 +666,7 @@ namespace OpenQA.Selenium
         {
             try
             {
-                this.Execute(DriverCommand.Quit, null);
+                this.ExecuteAsync(DriverCommand.Quit, null).ConfigureAwait(false).GetAwaiter().GetResult();
             }
             catch (NotImplementedException)
             {
@@ -805,7 +806,7 @@ namespace OpenQA.Selenium
         /// <param name="commandName">The name of the command to execute.</param>
         /// <param name="args">The arguments to the script.</param>
         /// <returns>The value returned by the script.</returns>
-        protected object ExecuteScriptCommand(string script, string commandName, params object[] args)
+        protected async Task<object> ExecuteScriptCommandAsync(string script, string commandName, params object[] args)
         {
             object[] convertedArgs = ConvertArgumentsToJavaScriptObjects(args);
 
@@ -821,7 +822,7 @@ namespace OpenQA.Selenium
                 parameters.Add("args", new object[] { });
             }
 
-            Response commandResponse = this.Execute(commandName, parameters);
+            Response commandResponse = await this.ExecuteAsync(commandName, parameters).ConfigureAwait(false);
             return this.ParseJavaScriptReturnValue(commandResponse.Value);
         }
 
@@ -975,9 +976,9 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="options"> VirtualAuthenticator Options (https://w3c.github.io/webauthn/#sctn-automation-virtual-authenticators)</param>
         /// <returns> Authenticator id as string </returns>
-        public string AddVirtualAuthenticator(VirtualAuthenticatorOptions options)
+        public async Task<string> AddVirtualAuthenticatorAsync(VirtualAuthenticatorOptions options)
         {
-            Response commandResponse = this.Execute(DriverCommand.AddVirtualAuthenticator, options.ToDictionary());
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.AddVirtualAuthenticator, options.ToDictionary()).ConfigureAwait(false);
             string id = commandResponse.Value.ToString();
             this.authenticatorId = id;
             return this.authenticatorId;
@@ -987,11 +988,11 @@ namespace OpenQA.Selenium
         /// Removes the Virtual Authenticator
         /// </summary>
         /// <param name="authenticatorId"> Id as string that uniquely identifies a Virtual Authenticator</param>
-        public void RemoveVirtualAuthenticator(string authenticatorId)
+        public async Task RemoveVirtualAuthenticatorAsync(string authenticatorId)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("authenticatorId", this.authenticatorId);
-            this.Execute(DriverCommand.RemoveVirtualAuthenticator, parameters);
+            await this.ExecuteAsync(DriverCommand.RemoveVirtualAuthenticator, parameters).ConfigureAwait(false);
             this.authenticatorId = null;
         }
 
@@ -1001,24 +1002,24 @@ namespace OpenQA.Selenium
         /// Add a credential to the Virtual Authenticator/
         /// </summary>
         /// <param name="credential"> The credential to be stored in the Virtual Authenticator</param>
-        public void AddCredential(Credential credential)
+        public Task AddCredentialAsync(Credential credential)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>(credential.ToDictionary());
             parameters.Add("authenticatorId", this.authenticatorId);
 
-            this.Execute(driverCommandToExecute: DriverCommand.AddCredential, parameters);
+            return this.ExecuteAsync(driverCommandToExecute: DriverCommand.AddCredential, parameters);
         }
 
         /// <summary>
         /// Retrieves all the credentials stored in the Virtual Authenticator
         /// </summary>
         /// <returns> List of credentials </returns>
-        public List<Credential> GetCredentials()
+        public async Task<List<Credential>> GetCredentialsAsync()
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("authenticatorId", this.authenticatorId);
 
-            object[] commandResponse = (object[])this.Execute(driverCommandToExecute: DriverCommand.GetCredentials, parameters).Value;
+            object[] commandResponse = (object[])(await this.ExecuteAsync(driverCommandToExecute: DriverCommand.GetCredentials, parameters).ConfigureAwait(false)).Value;
 
             List<Credential> credentials = new List<Credential>();
 
@@ -1035,46 +1036,46 @@ namespace OpenQA.Selenium
         /// Removes the credential identified by the credentialId from the Virtual Authenticator.
         /// </summary>
         /// <param name="credentialId"> The id as byte array that uniquely identifies a credential </param>
-        public void RemoveCredential(byte[] credentialId)
+        public Task RemoveCredentialAsync(byte[] credentialId)
         {
-            RemoveCredential(Base64UrlEncoder.Encode(credentialId));
+            return RemoveCredentialAsync(Base64UrlEncoder.Encode(credentialId));
         }
 
         /// <summary>
         /// Removes the credential identified by the credentialId from the Virtual Authenticator.
         /// </summary>
         /// <param name="credentialId"> The id as string that uniquely identifies a credential </param>
-        public void RemoveCredential(string credentialId)
+        public Task RemoveCredentialAsync(string credentialId)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("authenticatorId", this.authenticatorId);
             parameters.Add("credentialId", credentialId);
 
-            this.Execute(driverCommandToExecute: DriverCommand.RemoveCredential, parameters);
+            return this.ExecuteAsync(driverCommandToExecute: DriverCommand.RemoveCredential, parameters);
         }
 
         /// <summary>
         /// Removes all the credentials stored in the Virtual Authenticator.
         /// </summary>
-        public void RemoveAllCredentials()
+        public Task RemoveAllCredentialsAsync()
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("authenticatorId", this.authenticatorId);
 
-            this.Execute(driverCommandToExecute: DriverCommand.RemoveAllCredentials, parameters);
+            return this.ExecuteAsync(driverCommandToExecute: DriverCommand.RemoveAllCredentials, parameters);
         }
 
         /// <summary>
         ///  Sets the isUserVerified property for the Virtual Authenticator.
         /// </summary>
         /// <param name="verified">The boolean value representing value to be set </param>
-        public void SetUserVerified(bool verified)
+        public Task SetUserVerifiedAsync(bool verified)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("authenticatorId", this.authenticatorId);
             parameters.Add("isUserVerified", verified);
 
-            this.Execute(driverCommandToExecute: DriverCommand.SetUserVerified, parameters);
+            return this.ExecuteAsync(driverCommandToExecute: DriverCommand.SetUserVerified, parameters);
         }
     }
 }

@@ -22,6 +22,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Remote;
 
@@ -232,9 +233,17 @@ namespace OpenQA.Selenium.Firefox
         /// <exception cref="WebDriverException">If response is not recognized</exception>
         /// <returns>The context of commands.</returns>
         public FirefoxCommandContext GetContext()
+            => GetContextAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Sets the command context used when issuing commands to geckodriver.
+        /// </summary>
+        /// <exception cref="WebDriverException">If response is not recognized</exception>
+        /// <returns>The context of commands.</returns>
+        public async Task<FirefoxCommandContext> GetContextAsync()
         {
             FirefoxCommandContext output;
-            string response = this.Execute(GetContextCommand, null).Value.ToString();
+            string response = (await this.ExecuteAsync(GetContextCommand, null).ConfigureAwait(false)).Value.ToString();
 
             bool success = Enum.TryParse<FirefoxCommandContext>(response, true, out output);
             if (!success)
@@ -250,11 +259,18 @@ namespace OpenQA.Selenium.Firefox
         /// </summary>
         /// <param name="context">The <see cref="FirefoxCommandContext"/> value to which to set the context.</param>
         public void SetContext(FirefoxCommandContext context)
+            => SetContextAsync(context).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Sets the command context used when issuing commands to geckodriver.
+        /// </summary>
+        /// <param name="context">The <see cref="FirefoxCommandContext"/> value to which to set the context.</param>
+        public Task SetContextAsync(FirefoxCommandContext context)
         {
             string contextValue = context.ToString().ToLowerInvariant();
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["context"] = contextValue;
-            this.Execute(SetContextCommand, parameters);
+            return this.ExecuteAsync(SetContextCommand, parameters);
         }
 
         /// <summary>
@@ -263,6 +279,14 @@ namespace OpenQA.Selenium.Firefox
         /// <param name="addOnDirectoryToInstall">Full path of the directory of the add-on to install.</param>
         /// <param name="temporary">Whether the add-on is temporary; required for unsigned add-ons.</param>
         public string InstallAddOnFromDirectory(string addOnDirectoryToInstall, bool temporary = false)
+            => InstallAddOnFromDirectoryAsync(addOnDirectoryToInstall, temporary).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Installs a Firefox add-on from a directory.
+        /// </summary>
+        /// <param name="addOnDirectoryToInstall">Full path of the directory of the add-on to install.</param>
+        /// <param name="temporary">Whether the add-on is temporary; required for unsigned add-ons.</param>
+        public Task<string> InstallAddOnFromDirectoryAsync(string addOnDirectoryToInstall, bool temporary = false)
         {
             if (string.IsNullOrEmpty(addOnDirectoryToInstall))
             {
@@ -277,7 +301,7 @@ namespace OpenQA.Selenium.Firefox
             string addOnFileToInstall = Path.Combine(Path.GetTempPath(), "addon" + new Random().Next() + ".zip");
             ZipFile.CreateFromDirectory(addOnDirectoryToInstall, addOnFileToInstall);
 
-            return this.InstallAddOn(addOnFileToInstall, temporary);
+            return this.InstallAddOnAsync(addOnFileToInstall, temporary);
         }
 
         /// <summary>
@@ -286,6 +310,14 @@ namespace OpenQA.Selenium.Firefox
         /// <param name="addOnFileToInstall">Full path and file name of the add-on to install.</param>
         /// <param name="temporary">Whether the add-on is temporary; required for unsigned add-ons.</param>
         public string InstallAddOnFromFile(string addOnFileToInstall, bool temporary = false)
+            => InstallAddOnFromFileAsync(addOnFileToInstall, temporary).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Installs a Firefox add-on from a file, typically a .xpi file.
+        /// </summary>
+        /// <param name="addOnFileToInstall">Full path and file name of the add-on to install.</param>
+        /// <param name="temporary">Whether the add-on is temporary; required for unsigned add-ons.</param>
+        public Task<string> InstallAddOnFromFileAsync(string addOnFileToInstall, bool temporary = false)
         {
             if (string.IsNullOrEmpty(addOnFileToInstall))
             {
@@ -300,7 +332,7 @@ namespace OpenQA.Selenium.Firefox
             byte[] addOnBytes = File.ReadAllBytes(addOnFileToInstall);
             string base64EncodedAddOn = Convert.ToBase64String(addOnBytes);
 
-            return this.InstallAddOn(base64EncodedAddOn, temporary);
+            return this.InstallAddOnAsync(base64EncodedAddOn, temporary);
         }
 
         /// <summary>
@@ -309,6 +341,14 @@ namespace OpenQA.Selenium.Firefox
         /// <param name="base64EncodedAddOn">The base64-encoded string representation of the add-on binary.</param>
         /// <param name="temporary">Whether the add-on is temporary; required for unsigned add-ons.</param>
         public string InstallAddOn(string base64EncodedAddOn, bool temporary = false)
+            => InstallAddOnAsync(base64EncodedAddOn, temporary).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Installs a Firefox add-on.
+        /// </summary>
+        /// <param name="base64EncodedAddOn">The base64-encoded string representation of the add-on binary.</param>
+        /// <param name="temporary">Whether the add-on is temporary; required for unsigned add-ons.</param>
+        public async Task<string> InstallAddOnAsync(string base64EncodedAddOn, bool temporary = false)
         {
             if (string.IsNullOrEmpty(base64EncodedAddOn))
             {
@@ -320,7 +360,7 @@ namespace OpenQA.Selenium.Firefox
                 ["addon"] = base64EncodedAddOn,
                 ["temporary"] = temporary
             };
-            Response response = this.Execute(InstallAddOnCommand, parameters);
+            Response response = await this.ExecuteAsync(InstallAddOnCommand, parameters).ConfigureAwait(false);
             return (string)response.Value;
         }
 
@@ -329,6 +369,13 @@ namespace OpenQA.Selenium.Firefox
         /// </summary>
         /// <param name="addOnId">The ID of the add-on to uninstall.</param>
         public void UninstallAddOn(string addOnId)
+            => UninstallAddOnAsync(addOnId).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Uninstalls a Firefox add-on.
+        /// </summary>
+        /// <param name="addOnId">The ID of the add-on to uninstall.</param>
+        public Task UninstallAddOnAsync(string addOnId)
         {
             if (string.IsNullOrEmpty(addOnId))
             {
@@ -337,7 +384,7 @@ namespace OpenQA.Selenium.Firefox
 
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["id"] = addOnId;
-            this.Execute(UninstallAddOnCommand, parameters);
+            return this.ExecuteAsync(UninstallAddOnCommand, parameters);
         }
 
         /// <summary>
@@ -345,8 +392,15 @@ namespace OpenQA.Selenium.Firefox
         /// </summary>
         /// <returns>A <see cref="Screenshot"/> object containing the image.</returns>
         public Screenshot GetFullPageScreenshot()
+            => GetFullPageScreenshotAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Gets a <see cref="Screenshot"/> object representing the image of the full page on the screen.
+        /// </summary>
+        /// <returns>A <see cref="Screenshot"/> object containing the image.</returns>
+        public async Task<Screenshot> GetFullPageScreenshotAsync()
         {
-            Response screenshotResponse = this.Execute(GetFullPageScreenshotCommand, null);
+            Response screenshotResponse = await this.ExecuteAsync(GetFullPageScreenshotCommand, null).ConfigureAwait(false);
             string base64 = screenshotResponse.Value.ToString();
             return new Screenshot(base64);
         }
@@ -356,9 +410,9 @@ namespace OpenQA.Selenium.Firefox
         /// </summary>
         /// <param name="devToolsProtocolVersion">The version of the Chromium Developer Tools protocol to use. Defaults to autodetect the protocol version.</param>
         /// <returns>The active session to use to communicate with the Chromium Developer Tools debugging protocol.</returns>
-        public DevToolsSession GetDevToolsSession()
+        public Task<DevToolsSession> GetDevToolsSessionAsync()
         {
-            return GetDevToolsSession(FirefoxDevToolsProtocolVersion);
+            return GetDevToolsSessionAsync(FirefoxDevToolsProtocolVersion);
         }
 
         /// <summary>
@@ -366,7 +420,7 @@ namespace OpenQA.Selenium.Firefox
         /// </summary>
         /// <param name="devToolsProtocolVersion">The version of the Chromium Developer Tools protocol to use. Defaults to autodetect the protocol version.</param>
         /// <returns>The active session to use to communicate with the Chromium Developer Tools debugging protocol.</returns>
-        public DevToolsSession GetDevToolsSession(int devToolsProtocolVersion)
+        public async Task<DevToolsSession> GetDevToolsSessionAsync(int devToolsProtocolVersion)
         {
             if (this.devToolsSession == null)
             {
@@ -379,7 +433,7 @@ namespace OpenQA.Selenium.Firefox
                 try
                 {
                     DevToolsSession session = new DevToolsSession(debuggerAddress);
-                    session.StartSession(devToolsProtocolVersion).ConfigureAwait(false).GetAwaiter().GetResult();
+                    await session.StartSession(devToolsProtocolVersion).ConfigureAwait(false);
                     this.devToolsSession = session;
                 }
                 catch (Exception e)
@@ -394,11 +448,11 @@ namespace OpenQA.Selenium.Firefox
         /// <summary>
         /// Closes a DevTools session.
         /// </summary>
-        public void CloseDevToolsSession()
+        public async Task CloseDevToolsSessionAsync()
         {
             if (this.devToolsSession != null)
             {
-                this.devToolsSession.StopSession(true).ConfigureAwait(false).GetAwaiter().GetResult();
+                await this.devToolsSession.StopSession(true).ConfigureAwait(false);
             }
         }
 

@@ -1,4 +1,4 @@
-﻿// <copyright file="IAlert.cs" company="WebDriver Committers">
+// <copyright file="IAlert.cs" company="WebDriver Committers">
 // Licensed to the Software Freedom Conservancy (SFC) under one
 // or more contributor license agreements. See the NOTICE file
 // distributed with this work for additional information
@@ -16,6 +16,8 @@
 // limitations under the License.
 // </copyright>
 
+using System.Threading.Tasks;
+
 namespace OpenQA.Selenium
 {
     /// <summary>
@@ -31,17 +33,39 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Dismisses the alert.
         /// </summary>
-        void Dismiss();
+        Task DismissAsync();
 
         /// <summary>
         /// Accepts the alert.
         /// </summary>
-        void Accept();
+        Task AcceptAsync();
 
         /// <summary>
         /// Sends keys to the alert.
         /// </summary>
         /// <param name="keysToSend">The keystrokes to send.</param>
-        void SendKeys(string keysToSend);
+        Task SendKeysAsync(string keysToSend);
+    }
+
+    public static class IAlertExtensions
+    {
+        /// <summary>
+        /// Dismisses the alert.
+        /// </summary>
+        public static void Dismiss(this IAlert alert)
+            => alert.DismissAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Accepts the alert.
+        /// </summary>
+        public static void Accept(this IAlert alert)
+            => alert.AcceptAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Sends keys to the alert.
+        /// </summary>
+        /// <param name="keysToSend">The keystrokes to send.</param>
+        public static void SendKeys(this IAlert alert, string keysToSend)
+            => alert.SendKeysAsync(keysToSend).ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

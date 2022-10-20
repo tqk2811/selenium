@@ -16,6 +16,7 @@
 // limitations under the License.
 // </copyright>
 
+using System.Threading.Tasks;
 namespace OpenQA.Selenium.DevTools
 {
     /// <summary>
@@ -32,18 +33,42 @@ namespace OpenQA.Selenium.DevTools
         /// Creates a session to communicate with a browser using a Developer Tools debugging protocol.
         /// </summary>
         /// <returns>The active session to use to communicate with the Developer Tools debugging protocol.</returns>
-        DevToolsSession GetDevToolsSession();
+        Task<DevToolsSession> GetDevToolsSessionAsync();
 
         /// <summary>
         /// Creates a session to communicate with a browser using a specific version of the Developer Tools debugging protocol.
         /// </summary>
         /// <param name="protocolVersion">The specific version of the Developer Tools debugging protocol to use.</param>
         /// <returns>The active session to use to communicate with the Developer Tools debugging protocol.</returns>
-        DevToolsSession GetDevToolsSession(int protocolVersion);
+        Task<DevToolsSession> GetDevToolsSessionAsync(int protocolVersion);
 
         /// <summary>
         /// Closes a DevTools session
         /// </summary>
-        void CloseDevToolsSession();
+        Task CloseDevToolsSessionAsync();
+    }
+
+    public static class IDevToolsExtensions
+    {
+        /// <summary>
+        /// Creates a session to communicate with a browser using a Developer Tools debugging protocol.
+        /// </summary>
+        /// <returns>The active session to use to communicate with the Developer Tools debugging protocol.</returns>
+        public static DevToolsSession GetDevToolsSession(this IDevTools devTools)
+            => devTools.GetDevToolsSessionAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Creates a session to communicate with a browser using a specific version of the Developer Tools debugging protocol.
+        /// </summary>
+        /// <param name="protocolVersion">The specific version of the Developer Tools debugging protocol to use.</param>
+        /// <returns>The active session to use to communicate with the Developer Tools debugging protocol.</returns>
+        public static DevToolsSession GetDevToolsSession(this IDevTools devTools, int protocolVersion)
+            => devTools.GetDevToolsSessionAsync(protocolVersion).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Closes a DevTools session
+        /// </summary>
+        public static void CloseDevToolsSession(this IDevTools devTools)
+            => devTools.CloseDevToolsSessionAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

@@ -17,6 +17,7 @@
 // </copyright>
 
 using System;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -39,17 +40,17 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Move the browser back
         /// </summary>
-        public void Back()
+        public Task BackAsync()
         {
-            this.driver.InternalExecute(DriverCommand.GoBack, null);
+            return this.driver.InternalExecuteAsync(DriverCommand.GoBack, null);
         }
 
         /// <summary>
         /// Move the browser forward
         /// </summary>
-        public void Forward()
+        public Task ForwardAsync()
         {
-            this.driver.InternalExecute(DriverCommand.GoForward, null);
+            return this.driver.InternalExecuteAsync(DriverCommand.GoForward, null);
         }
 
         /// <summary>
@@ -78,10 +79,10 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Refresh the browser
         /// </summary>
-        public void Refresh()
+        public Task RefreshAsync()
         {
             // driver.SwitchTo().DefaultContent();
-            this.driver.InternalExecute(DriverCommand.Refresh, null);
+            return this.driver.InternalExecuteAsync(DriverCommand.Refresh, null);
         }
     }
 }

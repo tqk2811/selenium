@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -40,16 +41,37 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Maximizes the current window if it is not already maximized.
         /// </summary>
-        void Maximize();
+        Task MaximizeAsync();
 
         /// <summary>
         /// Minimizes the current window if it is not already minimized.
         /// </summary>
-        void Minimize();
+        Task MinimizeAsync();
 
         /// <summary>
         /// Sets the current window to full screen if it is not already in that state.
         /// </summary>
-        void FullScreen();
+        Task FullScreenAsync();
+    }
+
+    public static class IWindowExtensions
+    {
+        /// <summary>
+        /// Maximizes the current window if it is not already maximized.
+        /// </summary>
+        public static void Maximize(this IWindow window)
+            => window.MaximizeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Minimizes the current window if it is not already minimized.
+        /// </summary>
+        public static void Minimize(this IWindow window)
+            => window.MinimizeAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Sets the current window to full screen if it is not already in that state.
+        /// </summary>
+        public static void FullScreen(this IWindow window)
+            => window.FullScreenAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }

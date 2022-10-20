@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using OpenQA.Selenium.Remote;
 
 namespace OpenQA.Selenium.Safari
@@ -156,10 +157,18 @@ namespace OpenQA.Selenium.Safari
         /// the execution will pause, no additional commands will be processed, and the code will time out.
         /// </summary>
         public void AttachDebugger()
+            => AttachDebuggerAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// This opens Safari's Web Inspector.
+        /// If driver subsequently executes script of "debugger;"
+        /// the execution will pause, no additional commands will be processed, and the code will time out.
+        /// </summary>
+        public Task AttachDebuggerAsync()
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["attachDebugger"] = null;
-            this.Execute(AttachDebuggerCommand, parameters);
+            return this.ExecuteAsync(AttachDebuggerCommand, parameters);
         }
 
         /// <summary>
@@ -168,6 +177,14 @@ namespace OpenQA.Selenium.Safari
         /// <param name="permissionName">The name of the item to set permission on.</param>
         /// <param name="permissionValue">Whether the permission has been granted.</param>
         public void SetPermission(string permissionName, bool permissionValue)
+            => SetPermissionAsync(permissionName, permissionValue).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Set permission of an item on the browser. The only supported permission at this time is "getUserMedia".
+        /// </summary>
+        /// <param name="permissionName">The name of the item to set permission on.</param>
+        /// <param name="permissionValue">Whether the permission has been granted.</param>
+        public Task SetPermissionAsync(string permissionName, bool permissionValue)
         {
             if (string.IsNullOrEmpty(permissionName))
             {
@@ -178,16 +195,23 @@ namespace OpenQA.Selenium.Safari
             permissions[permissionName] = permissionValue;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters["permissions"] = permissions;
-            this.Execute(SetPermissionsCommand, parameters);
+            return this.ExecuteAsync(SetPermissionsCommand, parameters);
         }
 
         /// <summary>
         /// Returns Each available permission item and whether it is allowed or not.
         /// </summary>
         /// <returns>whether the item is allowed or not.</returns>
-        public Object GetPermissions()
+        public object GetPermissions()
+            => GetPermissionsAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Returns Each available permission item and whether it is allowed or not.
+        /// </summary>
+        /// <returns>whether the item is allowed or not.</returns>
+        public async Task<object> GetPermissionsAsync()
         {
-            Response response = this.Execute(GetPermissionsCommand, null);
+            Response response = await this.ExecuteAsync(GetPermissionsCommand, null).ConfigureAwait(false);
             return response.Value;
         }
 

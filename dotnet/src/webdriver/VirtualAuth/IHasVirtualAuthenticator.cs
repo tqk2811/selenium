@@ -15,27 +15,86 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace OpenQA.Selenium.VirtualAuth
 {
     public interface IHasVirtualAuthenticator
     {
-        string AddVirtualAuthenticator(VirtualAuthenticatorOptions options);
+        Task<string> AddVirtualAuthenticatorAsync(VirtualAuthenticatorOptions options);
 
-        void RemoveVirtualAuthenticator(string id);
+        Task RemoveVirtualAuthenticatorAsync(string id);
 
-        void AddCredential(Credential credential);
+        Task AddCredentialAsync(Credential credential);
 
-        List<Credential> GetCredentials();
+        Task<List<Credential>> GetCredentialsAsync();
 
-        void RemoveCredential(byte[] credentialId);
+        Task RemoveCredentialAsync(byte[] credentialId);
 
-        void RemoveCredential(string credentialId);
+        Task RemoveCredentialAsync(string credentialId);
 
-        void RemoveAllCredentials();
+        Task RemoveAllCredentialsAsync();
 
-        void SetUserVerified(bool verified);
+        Task SetUserVerifiedAsync(bool verified);
     }
 
+    public static class IHasVirtualAuthenticatorExtensions
+    {
+        /// <summary>
+        /// Creates a Virtual Authenticator.
+        /// </summary>
+        /// <param name="options"> VirtualAuthenticator Options (https://w3c.github.io/webauthn/#sctn-automation-virtual-authenticators)</param>
+        /// <returns> Authenticator id as string </returns>
+        public static string AddVirtualAuthenticator(this IHasVirtualAuthenticator hasVirtualAuthenticator, VirtualAuthenticatorOptions options)
+            => hasVirtualAuthenticator.AddVirtualAuthenticatorAsync(options).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Removes the Virtual Authenticator
+        /// </summary>
+        /// <param name="authenticatorId"> Id as string that uniquely identifies a Virtual Authenticator</param>
+        public static void RemoveVirtualAuthenticator(this IHasVirtualAuthenticator hasVirtualAuthenticator, string authenticatorId)
+            => hasVirtualAuthenticator.RemoveVirtualAuthenticatorAsync(authenticatorId).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Add a credential to the Virtual Authenticator
+        /// </summary>
+        /// <param name="credential"> The credential to be stored in the Virtual Authenticator</param>
+        public static void AddCredential(this IHasVirtualAuthenticator hasVirtualAuthenticator, Credential credential)
+            => hasVirtualAuthenticator.AddCredentialAsync(credential).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Retrieves all the credentials stored in the Virtual Authenticator
+        /// </summary>
+        /// <returns> List of credentials </returns>
+        public static List<Credential> GetCredentials(this IHasVirtualAuthenticator hasVirtualAuthenticator)
+            => hasVirtualAuthenticator.GetCredentialsAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Removes the credential identified by the credentialId from the Virtual Authenticator.
+        /// </summary>
+        /// <param name="credentialId"> The id as byte array that uniquely identifies a credential </param>
+        public static void RemoveCredential(this IHasVirtualAuthenticator hasVirtualAuthenticator, byte[] credentialId)
+            => hasVirtualAuthenticator.RemoveCredentialAsync(credentialId).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Removes the credential identified by the credentialId from the Virtual Authenticator.
+        /// </summary>
+        /// <param name="credentialId"> The id as byte array that uniquely identifies a credential </param>
+        public static void RemoveCredential(this IHasVirtualAuthenticator hasVirtualAuthenticator, string credentialId)
+            => hasVirtualAuthenticator.RemoveCredentialAsync(credentialId).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        /// Removes all the credentials stored in the Virtual Authenticator.
+        /// </summary>
+        public static void RemoveAllCredentials(this IHasVirtualAuthenticator hasVirtualAuthenticator)
+            => hasVirtualAuthenticator.RemoveAllCredentialsAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+
+        /// <summary>
+        ///  Sets the isUserVerified property for the Virtual Authenticator.
+        /// </summary>
+        /// <param name="verified">The boolean value representing value to be set </param>
+        public static void SetUserVerified(this IHasVirtualAuthenticator hasVirtualAuthenticator, bool verified)
+            => hasVirtualAuthenticator.SetUserVerifiedAsync(verified).ConfigureAwait(false).GetAwaiter().GetResult();
+    }
 }
