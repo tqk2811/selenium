@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using OpenQA.Selenium.Internal;
 
 namespace OpenQA.Selenium
@@ -45,8 +46,8 @@ namespace OpenQA.Selenium
         private string description = "OpenQA.Selenium.By";
         private string mechanism = string.Empty;
         private string criteria = string.Empty;
-        private Func<ISearchContext, IWebElement> findElementMethod;
-        private Func<ISearchContext, ReadOnlyCollection<IWebElement>> findElementsMethod;
+        private Func<ISearchContext, Task<IWebElement>> findElementMethodAsync;
+        private Func<ISearchContext, Task<ReadOnlyCollection<IWebElement>>> findElementsMethodAsync;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="By"/> class.
@@ -68,22 +69,22 @@ namespace OpenQA.Selenium
         {
             this.mechanism = mechanism;
             this.criteria = criteria;
-            this.findElementMethod = (ISearchContext context) => ((IFindsElement)context).FindElement(this.mechanism, this.criteria);
-            this.findElementsMethod = (ISearchContext context) => ((IFindsElement)context).FindElements(this.mechanism, this.criteria);
+            this.findElementMethodAsync = (ISearchContext context) => ((IFindsElement)context).FindElementAsync(this.mechanism, this.criteria);
+            this.findElementsMethodAsync = (ISearchContext context) => ((IFindsElement)context).FindElementsAsync(this.mechanism, this.criteria);
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="By"/> class using the given functions to find elements.
         /// </summary>
-        /// <param name="findElementMethod">A function that takes an object implementing <see cref="ISearchContext"/>
+        /// <param name="findElementMethodAsync">A function that takes an object implementing <see cref="ISearchContext"/>
         /// and returns the found <see cref="IWebElement"/>.</param>
-        /// <param name="findElementsMethod">A function that takes an object implementing <see cref="ISearchContext"/>
+        /// <param name="findElementsMethodAsync">A function that takes an object implementing <see cref="ISearchContext"/>
         /// and returns a <see cref="ReadOnlyCollection{T}"/> of the found<see cref="IWebElement">IWebElements</see>.
         /// <see cref="IWebElement">IWebElements</see>/>.</param>
-        protected By(Func<ISearchContext, IWebElement> findElementMethod, Func<ISearchContext, ReadOnlyCollection<IWebElement>> findElementsMethod)
+        protected By(Func<ISearchContext, Task<IWebElement>> findElementMethodAsync, Func<ISearchContext, Task<ReadOnlyCollection<IWebElement>>> findElementsMethodAsync)
         {
-            this.findElementMethod = findElementMethod;
-            this.findElementsMethod = findElementsMethod;
+            this.findElementMethodAsync = findElementMethodAsync;
+            this.findElementsMethodAsync = findElementsMethodAsync;
         }
 
         /// <summary>
@@ -114,19 +115,19 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Gets or sets the method used to find a single element matching specified criteria.
         /// </summary>
-        protected Func<ISearchContext, IWebElement> FindElementMethod
+        protected Func<ISearchContext, Task<IWebElement>> FindElementMethodAsync
         {
-            get { return this.findElementMethod; }
-            set { this.findElementMethod = value; }
+            get { return this.findElementMethodAsync; }
+            set { this.findElementMethodAsync = value; }
         }
 
         /// <summary>
         /// Gets or sets the method used to find all elements matching specified criteria.
         /// </summary>
-        protected Func<ISearchContext, ReadOnlyCollection<IWebElement>> FindElementsMethod
+        protected Func<ISearchContext, Task<ReadOnlyCollection<IWebElement>>> FindElementsMethodAsync
         {
-            get { return this.findElementsMethod; }
-            set { this.findElementsMethod = value; }
+            get { return this.findElementsMethodAsync; }
+            set { this.findElementsMethodAsync = value; }
         }
 
         /// <summary>
@@ -184,7 +185,7 @@ namespace OpenQA.Selenium
                 // an empty list. However, finding by a CSS selector of '#'
                 // throws an exception, even in the multiple elements case,
                 // which means we need to short-circuit that behavior.
-                by.findElementsMethod = (ISearchContext context) => new List<IWebElement>().AsReadOnly();
+                by.findElementsMethodAsync = (ISearchContext context) => Task.FromResult(new List<IWebElement>().AsReadOnly());
             }
 
             return by;
@@ -331,9 +332,9 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="context">An <see cref="ISearchContext"/> object to use to search for the elements.</param>
         /// <returns>The first matching <see cref="IWebElement"/> on the current context.</returns>
-        public virtual IWebElement FindElement(ISearchContext context)
+        public virtual Task<IWebElement> FindElementAsync(ISearchContext context)
         {
-            return this.findElementMethod(context);
+            return this.findElementMethodAsync(context);
         }
 
         /// <summary>
@@ -342,9 +343,9 @@ namespace OpenQA.Selenium
         /// <param name="context">An <see cref="ISearchContext"/> object to use to search for the elements.</param>
         /// <returns>A <see cref="ReadOnlyCollection{T}"/> of all <see cref="IWebElement">WebElements</see>
         /// matching the current criteria, or an empty list if nothing matches.</returns>
-        public virtual ReadOnlyCollection<IWebElement> FindElements(ISearchContext context)
+        public virtual Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(ISearchContext context)
         {
-            return this.findElementsMethod(context);
+            return this.findElementsMethodAsync(context);
         }
 
         /// <summary>

@@ -24,6 +24,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading.Tasks;
 using OpenQA.Selenium.Interactions.Internal;
 using OpenQA.Selenium.Internal;
 
@@ -73,7 +74,7 @@ namespace OpenQA.Selenium
             {
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("id", this.elementId);
-                Response commandResponse = this.Execute(DriverCommand.GetElementTagName, parameters);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.GetElementTagName, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
                 return commandResponse.Value.ToString();
             }
         }
@@ -89,7 +90,7 @@ namespace OpenQA.Selenium
             {
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("id", this.elementId);
-                Response commandResponse = this.Execute(DriverCommand.GetElementText, parameters);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.GetElementText, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
                 return commandResponse.Value.ToString();
             }
         }
@@ -106,7 +107,7 @@ namespace OpenQA.Selenium
             {
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("id", this.elementId);
-                Response commandResponse = this.Execute(DriverCommand.IsElementEnabled, parameters);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.IsElementEnabled, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
                 return (bool)commandResponse.Value;
             }
         }
@@ -123,7 +124,7 @@ namespace OpenQA.Selenium
             {
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("id", this.elementId);
-                Response commandResponse = this.Execute(DriverCommand.IsElementSelected, parameters);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.IsElementSelected, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
                 return (bool)commandResponse.Value;
             }
         }
@@ -140,7 +141,7 @@ namespace OpenQA.Selenium
                 string getLocationCommand = DriverCommand.GetElementRect;
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("id", this.Id);
-                Response commandResponse = this.Execute(getLocationCommand, parameters);
+                Response commandResponse = this.ExecuteAsync(getLocationCommand, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
                 Dictionary<string, object> rawPoint = (Dictionary<string, object>)commandResponse.Value;
                 int x = Convert.ToInt32(rawPoint["x"], CultureInfo.InvariantCulture);
                 int y = Convert.ToInt32(rawPoint["y"], CultureInfo.InvariantCulture);
@@ -159,7 +160,7 @@ namespace OpenQA.Selenium
                 string getSizeCommand = DriverCommand.GetElementRect;
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("id", this.Id);
-                Response commandResponse = this.Execute(getSizeCommand, parameters);
+                Response commandResponse = this.ExecuteAsync(getSizeCommand, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
                 Dictionary<string, object> rawSize = (Dictionary<string, object>)commandResponse.Value;
                 int width = Convert.ToInt32(rawSize["width"], CultureInfo.InvariantCulture);
                 int height = Convert.ToInt32(rawSize["height"], CultureInfo.InvariantCulture);
@@ -183,7 +184,7 @@ namespace OpenQA.Selenium
                 string atom = GetAtom("is-displayed.js");
                 parameters.Add("script", atom);
                 parameters.Add("args", new object[] { this.ToElementReference().ToDictionary() });
-                commandResponse = this.Execute(DriverCommand.ExecuteScript, parameters);
+                commandResponse = this.ExecuteAsync(DriverCommand.ExecuteScript, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 return (bool)commandResponse.Value;
             }
@@ -197,7 +198,9 @@ namespace OpenQA.Selenium
             get
             {
                 Dictionary<string, object> rawLocation;
-                object scriptResponse = this.driver.ExecuteScript("var rect = arguments[0].getBoundingClientRect(); return {'x': rect.left, 'y': rect.top};", this);
+                object scriptResponse = this.driver
+                    .ExecuteScriptAsync("var rect = arguments[0].getBoundingClientRect(); return {'x': rect.left, 'y': rect.top};", this)
+                    .ConfigureAwait(false).GetAwaiter().GetResult();
                 rawLocation = scriptResponse as Dictionary<string, object>;
 
                 int x = Convert.ToInt32(rawLocation["x"], CultureInfo.InvariantCulture);
@@ -215,7 +218,7 @@ namespace OpenQA.Selenium
             {
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("id", this.Id);
-                Response commandResponse = this.Execute(DriverCommand.GetComputedAccessibleLabel, parameters);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.GetComputedAccessibleLabel, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
                 return commandResponse.Value.ToString();
             }
         }
@@ -233,7 +236,7 @@ namespace OpenQA.Selenium
                 // be returned by this property.
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("id", this.Id);
-                Response commandResponse = this.Execute(DriverCommand.GetComputedAccessibleRole, parameters);
+                Response commandResponse = this.ExecuteAsync(DriverCommand.GetComputedAccessibleRole, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
                 return commandResponse.Value.ToString();
             }
         }
@@ -277,11 +280,11 @@ namespace OpenQA.Selenium
         /// method will clear the value. It has no effect on other elements. Text entry elements
         /// are defined as elements with INPUT or TEXTAREA tags.</remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        public virtual void Clear()
+        public virtual Task ClearAsync()
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", this.elementId);
-            this.Execute(DriverCommand.ClearElement, parameters);
+            return this.ExecuteAsync(DriverCommand.ClearElement, parameters);
         }
 
         /// <summary>
@@ -298,11 +301,11 @@ namespace OpenQA.Selenium
         /// <exception cref="InvalidElementStateException">Thrown when the target element is not enabled.</exception>
         /// <exception cref="ElementNotVisibleException">Thrown when the target element is not visible.</exception>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        public virtual void Click()
+        public virtual Task ClickAsync()
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", this.elementId);
-            this.Execute(DriverCommand.ClickElement, parameters);
+            return this.ExecuteAsync(DriverCommand.ClickElement, parameters);
         }
 
         /// <summary>
@@ -311,14 +314,14 @@ namespace OpenQA.Selenium
         /// <param name="by">The locating mechanism to use.</param>
         /// <returns>The first matching <see cref="IWebElement"/> on the current context.</returns>
         /// <exception cref="NoSuchElementException">If no element matches the criteria.</exception>
-        public virtual IWebElement FindElement(By by)
+        public virtual Task<IWebElement> FindElementAsync(By by)
         {
             if (by == null)
             {
                 throw new ArgumentNullException(nameof(@by), "by cannot be null");
             }
 
-            return by.FindElement(this);
+            return by.FindElementAsync(this);
         }
 
         /// <summary>
@@ -327,13 +330,13 @@ namespace OpenQA.Selenium
         /// <param name="mechanism">The mechanism by which to find the element.</param>
         /// <param name="value">The value to use to search for the element.</param>
         /// <returns>The first <see cref="IWebElement"/> matching the given criteria.</returns>
-        public virtual IWebElement FindElement(string mechanism, string value)
+        public virtual async Task<IWebElement> FindElementAsync(string mechanism, string value)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", this.elementId);
             parameters.Add("using", mechanism);
             parameters.Add("value", value);
-            Response commandResponse = this.Execute(DriverCommand.FindChildElement, parameters);
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.FindChildElement, parameters).ConfigureAwait(false);
             return this.driver.GetElementFromResponse(commandResponse);
         }
 
@@ -344,14 +347,14 @@ namespace OpenQA.Selenium
         /// <param name="by">The locating mechanism to use.</param>
         /// <returns>A <see cref="ReadOnlyCollection{T}"/> of all <see cref="IWebElement">WebElements</see>
         /// matching the current criteria, or an empty list if nothing matches.</returns>
-        public virtual ReadOnlyCollection<IWebElement> FindElements(By by)
+        public virtual Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(By by)
         {
             if (by == null)
             {
                 throw new ArgumentNullException(nameof(@by), "by cannot be null");
             }
 
-            return by.FindElements(this);
+            return by.FindElementsAsync(this);
         }
 
         /// <summary>
@@ -360,13 +363,13 @@ namespace OpenQA.Selenium
         /// <param name="mechanism">The mechanism by which to find the elements.</param>
         /// <param name="value">The value to use to search for the elements.</param>
         /// <returns>A collection of all of the <see cref="IWebElement">IWebElements</see> matching the given criteria.</returns>
-        public virtual ReadOnlyCollection<IWebElement> FindElements(string mechanism, string value)
+        public virtual async Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(string mechanism, string value)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", this.elementId);
             parameters.Add("using", mechanism);
             parameters.Add("value", value);
-            Response commandResponse = this.Execute(DriverCommand.FindChildElements, parameters);
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.FindChildElements, parameters).ConfigureAwait(false);
             return this.driver.GetElementsFromResponse(commandResponse);
         }
 
@@ -407,7 +410,7 @@ namespace OpenQA.Selenium
         /// via JavaScript.
         /// </remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        public virtual string GetAttribute(string attributeName)
+        public virtual async Task<string> GetAttributeAsync(string attributeName)
         {
             Response commandResponse = null;
             string attributeValue = string.Empty;
@@ -415,7 +418,7 @@ namespace OpenQA.Selenium
             string atom = GetAtom("get-attribute.js");
             parameters.Add("script", atom);
             parameters.Add("args", new object[] { this.ToElementReference().ToDictionary(), attributeName });
-            commandResponse = this.Execute(DriverCommand.ExecuteScript, parameters);
+            commandResponse = await this.ExecuteAsync(DriverCommand.ExecuteScript, parameters).ConfigureAwait(false);
 
             if (commandResponse.Value == null)
             {
@@ -448,14 +451,14 @@ namespace OpenQA.Selenium
         /// of an IDL property of the element, either use the <see cref="GetAttribute(string)"/>
         /// method or the <see cref="GetDomProperty(string)"/> method.
         /// </remarks>
-        public virtual string GetDomAttribute(string attributeName)
+        public virtual async Task<string> GetDomAttributeAsync(string attributeName)
         {
             string attributeValue = string.Empty;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", this.Id);
             parameters.Add("name", attributeName);
 
-            Response commandResponse = this.Execute(DriverCommand.GetElementAttribute, parameters);
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.GetElementAttribute, parameters).ConfigureAwait(false);
             if (commandResponse.Value == null)
             {
                 attributeValue = null;
@@ -475,14 +478,14 @@ namespace OpenQA.Selenium
         /// <returns>The JavaScript property's current value. Returns a <see langword="null"/> if the
         /// value is not set or the property does not exist.</returns>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        public virtual string GetDomProperty(string propertyName)
+        public virtual async Task<string> GetDomPropertyAsync(string propertyName)
         {
             string propertyValue = string.Empty;
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", this.Id);
             parameters.Add("name", propertyName);
 
-            Response commandResponse = this.Execute(DriverCommand.GetElementProperty, parameters);
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.GetElementProperty, parameters).ConfigureAwait(false);
             if (commandResponse.Value == null)
             {
                 propertyValue = null;
@@ -501,12 +504,12 @@ namespace OpenQA.Selenium
         /// <returns>A shadow root representation.</returns>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
         /// <exception cref="NoSuchShadowRootException">Thrown when this element does not have a shadow root.</exception>
-        public virtual ISearchContext GetShadowRoot()
+        public virtual async Task<ISearchContext> GetShadowRootAsync()
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", this.Id);
 
-            Response commandResponse = this.Execute(DriverCommand.GetElementShadowRoot, parameters);
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.GetElementShadowRoot, parameters).ConfigureAwait(false);
             Dictionary<string, object> shadowRootDictionary = commandResponse.Value as Dictionary<string, object>;
             if (shadowRootDictionary == null)
             {
@@ -533,13 +536,13 @@ namespace OpenQA.Selenium
         /// "background-color" property set as "green" in the HTML source, will
         /// return "#008000" for its value.</remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        public virtual string GetCssValue(string propertyName)
+        public virtual async Task<string> GetCssValueAsync(string propertyName)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", this.Id);
             parameters.Add("name", propertyName);
 
-            Response commandResponse = this.Execute(DriverCommand.GetElementValueOfCssProperty, parameters);
+            Response commandResponse = await this.ExecuteAsync(DriverCommand.GetElementValueOfCssProperty, parameters).ConfigureAwait(false);
             return commandResponse.Value.ToString();
         }
 
@@ -547,13 +550,13 @@ namespace OpenQA.Selenium
         /// Gets a <see cref="Screenshot"/> object representing the image of this element on the screen.
         /// </summary>
         /// <returns>A <see cref="Screenshot"/> object containing the image.</returns>
-        public virtual Screenshot GetScreenshot()
+        public virtual async Task<Screenshot> GetScreenshotAsync()
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("id", this.elementId);
 
             // Get the screenshot as base64.
-            Response screenshotResponse = this.Execute(DriverCommand.ElementScreenshot, parameters);
+            Response screenshotResponse = await this.ExecuteAsync(DriverCommand.ElementScreenshot, parameters).ConfigureAwait(false);
             string base64 = screenshotResponse.Value.ToString();
 
             // ... and convert it.
@@ -571,7 +574,7 @@ namespace OpenQA.Selenium
         /// <exception cref="InvalidElementStateException">Thrown when the target element is not enabled.</exception>
         /// <exception cref="ElementNotVisibleException">Thrown when the target element is not visible.</exception>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        public virtual void SendKeys(string text)
+        public virtual async Task SendKeysAsync(string text)
         {
             if (text == null)
             {
@@ -584,7 +587,7 @@ namespace OpenQA.Selenium
                 var uploadResults = new List<string>();
                 foreach (var fileName in fileNames)
                 {
-                    uploadResults.Add(this.UploadFile(fileName));
+                    uploadResults.Add(await this.UploadFileAsync(fileName).ConfigureAwait(false));
                 }
                 text = string.Join("\n", uploadResults);
             }
@@ -600,7 +603,7 @@ namespace OpenQA.Selenium
             parameters.Add("text", text);
             parameters.Add("value", text.ToCharArray());
 
-            this.Execute(DriverCommand.SendKeysToElement, parameters);
+            await this.ExecuteAsync(DriverCommand.SendKeysToElement, parameters).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -611,16 +614,16 @@ namespace OpenQA.Selenium
         /// page to change, then this method will attempt to block until the new page
         /// is loaded.</remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        public virtual void Submit()
+        public virtual Task SubmitAsync()
         {
             string elementType = this.GetAttribute("type");
             if (elementType != null && elementType == "submit")
             {
-                this.Click();
+                return this.ClickAsync();
             }
             else
             {
-                String script = "var form = arguments[0];\n" +
+                string script = "var form = arguments[0];\n" +
                                 "while (form.nodeName != \"FORM\" && form.parentNode) {\n" +
                                 "  form = form.parentNode;\n" +
                                 "}\n" +
@@ -630,7 +633,7 @@ namespace OpenQA.Selenium
                                 "e.initEvent('submit', true, true);\n" +
                                 "if (form.dispatchEvent(e)) { HTMLFormElement.prototype.submit.call(form) }\n";
 
-                this.driver.ExecuteScript(script, this);
+                return this.driver.ExecuteScriptAsync(script, this);
             }
         }
 
@@ -701,9 +704,9 @@ namespace OpenQA.Selenium
         /// <param name="commandToExecute">The <see cref="DriverCommand"/> to execute against this element.</param>
         /// <param name="parameters">A <see cref="Dictionary{K, V}"/> containing names and values of the parameters for the command.</param>
         /// <returns>The <see cref="Response"/> object containing the result of the command execution.</returns>
-        protected virtual Response Execute(string commandToExecute, Dictionary<string, object> parameters)
+        protected virtual Task<Response> ExecuteAsync(string commandToExecute, Dictionary<string, object> parameters)
         {
-            return this.driver.InternalExecute(commandToExecute, parameters);
+            return this.driver.InternalExecuteAsync(commandToExecute, parameters);
         }
 
         private static string GetAtom(string atomResourceName)
@@ -721,7 +724,7 @@ namespace OpenQA.Selenium
             return wrappedAtom;
         }
 
-        private string UploadFile(string localFile)
+        private async Task<string> UploadFileAsync(string localFile)
         {
             string base64zip = string.Empty;
             try
@@ -738,7 +741,7 @@ namespace OpenQA.Selenium
 
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("file", base64zip);
-                Response response = this.Execute(DriverCommand.UploadFile, parameters);
+                Response response = await this.ExecuteAsync(DriverCommand.UploadFile, parameters).ConfigureAwait(false);
                 return response.Value.ToString();
             }
             catch (IOException e)

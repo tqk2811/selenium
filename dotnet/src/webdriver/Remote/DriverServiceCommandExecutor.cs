@@ -17,6 +17,7 @@
 // </copyright>
 
 using System;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium.Remote
 {
@@ -91,7 +92,7 @@ namespace OpenQA.Selenium.Remote
         /// </summary>
         /// <param name="commandToExecute">The command you wish to execute</param>
         /// <returns>A response from the browser</returns>
-        public Response Execute(Command commandToExecute)
+        public async Task<Response> ExecuteAsync(Command commandToExecute)
         {
             if (commandToExecute == null)
             {
@@ -108,7 +109,7 @@ namespace OpenQA.Selenium.Remote
             // command, so that we can get the finally block.
             try
             {
-                toReturn = this.internalExecutor.Execute(commandToExecute);
+                toReturn = await this.internalExecutor.ExecuteAsync(commandToExecute).ConfigureAwait(false);
             }
             finally
             {

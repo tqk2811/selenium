@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium.Internal
 {
@@ -31,7 +32,7 @@ namespace OpenQA.Selenium.Internal
         /// <param name="mechanism">The mechanism to use when matching.</param>
         /// <param name="value">The value to match.</param>
         /// <returns>The first <see cref="IWebElement"/> matching the criteria.</returns>
-        IWebElement FindElement(string mechanism, string value);
+        Task<IWebElement> FindElementAsync(string mechanism, string value);
 
         /// <summary>
         /// Finds all elements matching the specified value using the specified mechanism.
@@ -39,6 +40,6 @@ namespace OpenQA.Selenium.Internal
         /// <param name="mechanism">The mechanism to use when matching.</param>
         /// <param name="value">The value to match.</param>
         /// <returns><see cref="IWebElement">IWebElements</see> matching the criteria.</returns>
-        ReadOnlyCollection<IWebElement> FindElements(string mechanism, string value);
+        Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(string mechanism, string value);
     }
 }

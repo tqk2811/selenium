@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -44,7 +45,7 @@ namespace OpenQA.Selenium
         {
             get
             {
-                Response commandResponse = this.driver.InternalExecute(DriverCommand.GetAlertText, null);
+                Response commandResponse = this.driver.InternalExecuteAsync(DriverCommand.GetAlertText, null).ConfigureAwait(false).GetAwaiter().GetResult();
                 return commandResponse.Value.ToString();
             }
         }
@@ -52,24 +53,24 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Dismisses the alert.
         /// </summary>
-        public void Dismiss()
+        public Task DismissAsync()
         {
-            this.driver.InternalExecute(DriverCommand.DismissAlert, null);
+            return this.driver.InternalExecuteAsync(DriverCommand.DismissAlert, null);
         }
 
         /// <summary>
         /// Accepts the alert.
         /// </summary>
-        public void Accept()
+        public Task AcceptAsync()
         {
-            this.driver.InternalExecute(DriverCommand.AcceptAlert, null);
+            return this.driver.InternalExecuteAsync(DriverCommand.AcceptAlert, null);
         }
 
         /// <summary>
         /// Sends keys to the alert.
         /// </summary>
         /// <param name="keysToSend">The keystrokes to send.</param>
-        public void SendKeys(string keysToSend)
+        public Task SendKeysAsync(string keysToSend)
         {
             if (keysToSend == null)
             {
@@ -79,7 +80,7 @@ namespace OpenQA.Selenium
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("text", keysToSend);
 
-            this.driver.InternalExecute(DriverCommand.SetAlertValue, parameters);
+            return this.driver.InternalExecuteAsync(DriverCommand.SetAlertValue, parameters);
         }
     }
 }

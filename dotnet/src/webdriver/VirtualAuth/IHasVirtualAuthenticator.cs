@@ -15,27 +15,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // </copyright>
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace OpenQA.Selenium.VirtualAuth
 {
     public interface IHasVirtualAuthenticator
     {
-        string AddVirtualAuthenticator(VirtualAuthenticatorOptions options);
+        Task<string> AddVirtualAuthenticatorAsync(VirtualAuthenticatorOptions options);
 
-        void RemoveVirtualAuthenticator(string id);
+        Task RemoveVirtualAuthenticatorAsync(string id);
 
-        void AddCredential(Credential credential);
+        Task AddCredentialAsync(Credential credential);
 
-        List<Credential> GetCredentials();
+        Task<List<Credential>> GetCredentialsAsync();
 
-        void RemoveCredential(byte[] credentialId);
+        Task RemoveCredentialAsync(byte[] credentialId);
 
-        void RemoveCredential(string credentialId);
+        Task RemoveCredentialAsync(string credentialId);
 
-        void RemoveAllCredentials();
+        Task RemoveAllCredentialsAsync();
 
-        void SetUserVerified(bool verified);
+        Task SetUserVerifiedAsync(bool verified);
     }
-
 }

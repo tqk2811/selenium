@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Threading.Tasks;
 using OpenQA.Selenium.Internal;
 
 namespace OpenQA.Selenium.Support.Events
@@ -274,11 +275,11 @@ namespace OpenQA.Selenium.Support.Events
         /// <summary>
         /// Close the current window, quitting the browser if it is the last window currently open.
         /// </summary>
-        public void Close()
+        public async Task CloseAsync()
         {
             try
             {
-                this.driver.Close();
+                await this.driver.CloseAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -339,14 +340,14 @@ namespace OpenQA.Selenium.Support.Events
         /// <param name="by">The locating mechanism to use.</param>
         /// <returns>The first matching <see cref="IWebElement"/> on the current context.</returns>
         /// <exception cref="NoSuchElementException">If no element matches the criteria.</exception>
-        public IWebElement FindElement(By by)
+        public async Task<IWebElement> FindElementAsync(By by)
         {
             IWebElement wrappedElement = null;
             try
             {
                 FindElementEventArgs e = new FindElementEventArgs(this.driver, by);
                 this.OnFindingElement(e);
-                IWebElement element = this.driver.FindElement(by);
+                IWebElement element = await this.driver.FindElementAsync(by).ConfigureAwait(false);
                 this.OnFindElementCompleted(e);
                 wrappedElement = this.WrapElement(element);
             }
@@ -366,14 +367,14 @@ namespace OpenQA.Selenium.Support.Events
         /// <param name="by">The locating mechanism to use.</param>
         /// <returns>A <see cref="ReadOnlyCollection{T}"/> of all <see cref="IWebElement">WebElements</see>
         /// matching the current criteria, or an empty list if nothing matches.</returns>
-        public ReadOnlyCollection<IWebElement> FindElements(By by)
+        public async Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(By by)
         {
             List<IWebElement> wrappedElementList = new List<IWebElement>();
             try
             {
                 FindElementEventArgs e = new FindElementEventArgs(this.driver, by);
                 this.OnFindingElement(e);
-                ReadOnlyCollection<IWebElement> elements = this.driver.FindElements(by);
+                ReadOnlyCollection<IWebElement> elements = await this.driver.FindElementsAsync(by).ConfigureAwait(false);
                 this.OnFindElementCompleted(e);
                 foreach (IWebElement element in elements)
                 {
@@ -434,7 +435,7 @@ namespace OpenQA.Selenium.Support.Events
         /// variable, as if the function were called via "Function.apply"
         /// </para>
         /// </remarks>
-        public object ExecuteScript(string script, params object[] args)
+        public async Task<object> ExecuteScriptAsync(string script, params object[] args)
         {
             IJavaScriptExecutor javascriptDriver = this.driver as IJavaScriptExecutor;
             if (javascriptDriver == null)
@@ -448,7 +449,7 @@ namespace OpenQA.Selenium.Support.Events
                 object[] unwrappedArgs = UnwrapElementArguments(args);
                 WebDriverScriptEventArgs e = new WebDriverScriptEventArgs(this.driver, script);
                 this.OnScriptExecuting(e);
-                scriptResult = javascriptDriver.ExecuteScript(script, unwrappedArgs);
+                scriptResult = await javascriptDriver.ExecuteScriptAsync(script, unwrappedArgs).ConfigureAwait(false);
                 this.OnScriptExecuted(e);
             }
             catch (Exception ex)
@@ -496,7 +497,7 @@ namespace OpenQA.Selenium.Support.Events
         /// variable, as if the function were called via "Function.apply"
         /// </para>
         /// </remarks>
-        public object ExecuteScript(PinnedScript script, params object[] args)
+        public async Task<object> ExecuteScriptAsync(PinnedScript script, params object[] args)
         {
             IJavaScriptExecutor javascriptDriver = this.driver as IJavaScriptExecutor;
             if (javascriptDriver == null)
@@ -510,7 +511,7 @@ namespace OpenQA.Selenium.Support.Events
                 object[] unwrappedArgs = UnwrapElementArguments(args);
                 WebDriverScriptEventArgs e = new WebDriverScriptEventArgs(this.driver, script.Source);
                 this.OnScriptExecuting(e);
-                scriptResult = javascriptDriver.ExecuteScript(script, unwrappedArgs);
+                scriptResult = await javascriptDriver.ExecuteScriptAsync(script, unwrappedArgs).ConfigureAwait(false);
                 this.OnScriptExecuted(e);
             }
             catch (Exception ex)
@@ -528,7 +529,7 @@ namespace OpenQA.Selenium.Support.Events
         /// <param name="script">The JavaScript code to execute.</param>
         /// <param name="args">The arguments to the script.</param>
         /// <returns>The value returned by the script.</returns>
-        public object ExecuteAsyncScript(string script, params object[] args)
+        public async Task<object> ExecuteAsyncScriptAsync(string script, params object[] args)
         {
             object scriptResult = null;
             IJavaScriptExecutor javascriptDriver = this.driver as IJavaScriptExecutor;
@@ -542,7 +543,7 @@ namespace OpenQA.Selenium.Support.Events
                 object[] unwrappedArgs = UnwrapElementArguments(args);
                 WebDriverScriptEventArgs e = new WebDriverScriptEventArgs(this.driver, script);
                 this.OnScriptExecuting(e);
-                scriptResult = javascriptDriver.ExecuteAsyncScript(script, unwrappedArgs);
+                scriptResult = await javascriptDriver.ExecuteAsyncScriptAsync(script, unwrappedArgs).ConfigureAwait(false);
                 this.OnScriptExecuted(e);
             }
             catch (Exception ex)
@@ -558,7 +559,7 @@ namespace OpenQA.Selenium.Support.Events
         /// Gets a <see cref="Screenshot"/> object representing the image of the page on the screen.
         /// </summary>
         /// <returns>A <see cref="Screenshot"/> object containing the image.</returns>
-        public Screenshot GetScreenshot()
+        public Task<Screenshot> GetScreenshotAsync()
         {
             ITakesScreenshot screenshotDriver = this.driver as ITakesScreenshot;
             if (this.driver == null)
@@ -566,9 +567,7 @@ namespace OpenQA.Selenium.Support.Events
                 throw new NotSupportedException("Underlying driver instance does not support taking screenshots");
             }
 
-            Screenshot screen = null;
-            screen = screenshotDriver.GetScreenshot();
-            return screen;
+            return screenshotDriver.GetScreenshotAsync();
         }
 
         /// <summary>
@@ -811,13 +810,13 @@ namespace OpenQA.Selenium.Support.Events
             /// <summary>
             /// Move the browser back
             /// </summary>
-            public void Back()
+            public async Task BackAsync()
             {
                 try
                 {
                     WebDriverNavigationEventArgs e = new WebDriverNavigationEventArgs(this.parentDriver);
                     this.parentDriver.OnNavigatingBack(e);
-                    this.wrappedNavigation.Back();
+                    await this.wrappedNavigation.BackAsync().ConfigureAwait(false);
                     this.parentDriver.OnNavigatedBack(e);
                 }
                 catch (Exception ex)
@@ -830,13 +829,13 @@ namespace OpenQA.Selenium.Support.Events
             /// <summary>
             /// Move the browser forward
             /// </summary>
-            public void Forward()
+            public async Task ForwardAsync()
             {
                 try
                 {
                     WebDriverNavigationEventArgs e = new WebDriverNavigationEventArgs(this.parentDriver);
                     this.parentDriver.OnNavigatingForward(e);
-                    this.wrappedNavigation.Forward();
+                    await this.wrappedNavigation.ForwardAsync().ConfigureAwait(false);
                     this.parentDriver.OnNavigatedForward(e);
                 }
                 catch (Exception ex)
@@ -850,13 +849,13 @@ namespace OpenQA.Selenium.Support.Events
             /// Navigate to a url for your test
             /// </summary>
             /// <param name="url">String of where you want the browser to go to</param>
-            public void GoToUrl(string url)
+            public async Task GoToUrlAsync(string url)
             {
                 try
                 {
                     WebDriverNavigationEventArgs e = new WebDriverNavigationEventArgs(this.parentDriver, url);
                     this.parentDriver.OnNavigating(e);
-                    this.wrappedNavigation.GoToUrl(url);
+                    await this.wrappedNavigation.GoToUrlAsync(url).ConfigureAwait(false);
                     this.parentDriver.OnNavigated(e);
                 }
                 catch (Exception ex)
@@ -870,7 +869,7 @@ namespace OpenQA.Selenium.Support.Events
             /// Navigate to a url for your test
             /// </summary>
             /// <param name="url">Uri object of where you want the browser to go to</param>
-            public void GoToUrl(Uri url)
+            public async Task GoToUrlAsync(Uri url)
             {
                 if (url == null)
                 {
@@ -881,7 +880,7 @@ namespace OpenQA.Selenium.Support.Events
                 {
                     WebDriverNavigationEventArgs e = new WebDriverNavigationEventArgs(this.parentDriver, url.ToString());
                     this.parentDriver.OnNavigating(e);
-                    this.wrappedNavigation.GoToUrl(url);
+                    await this.wrappedNavigation.GoToUrlAsync(url).ConfigureAwait(false);
                     this.parentDriver.OnNavigated(e);
                 }
                 catch (Exception ex)
@@ -894,11 +893,11 @@ namespace OpenQA.Selenium.Support.Events
             /// <summary>
             /// Refresh the browser
             /// </summary>
-            public void Refresh()
+            public async Task RefreshAsync()
             {
                 try
                 {
-                    this.wrappedNavigation.Refresh();
+                    await this.wrappedNavigation.RefreshAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -985,12 +984,12 @@ namespace OpenQA.Selenium.Support.Events
             /// </summary>
             /// <param name="frameIndex">The index of the </param>
             /// <returns>A WebDriver instance that is currently in use</returns>
-            public IWebDriver Frame(int frameIndex)
+            public async Task<IWebDriver> FrameAsync(int frameIndex)
             {
                 IWebDriver driver = null;
                 try
                 {
-                    driver = this.wrappedLocator.Frame(frameIndex);
+                    driver = await this.wrappedLocator.FrameAsync(frameIndex).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1006,12 +1005,12 @@ namespace OpenQA.Selenium.Support.Events
             /// </summary>
             /// <param name="frameName">name of the frame</param>
             /// <returns>A WebDriver instance that is currently in use</returns>
-            public IWebDriver Frame(string frameName)
+            public async Task<IWebDriver> FrameAsync(string frameName)
             {
                 IWebDriver driver = null;
                 try
                 {
-                    driver = this.wrappedLocator.Frame(frameName);
+                    driver = await this.wrappedLocator.FrameAsync(frameName).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1027,13 +1026,13 @@ namespace OpenQA.Selenium.Support.Events
             /// </summary>
             /// <param name="frameElement">a previously found FRAME or IFRAME element.</param>
             /// <returns>A WebDriver instance that is currently in use.</returns>
-            public IWebDriver Frame(IWebElement frameElement)
+            public async Task<IWebDriver> FrameAsync(IWebElement frameElement)
             {
                 IWebDriver driver = null;
                 try
                 {
                     IWrapsElement wrapper = frameElement as IWrapsElement;
-                    driver = this.wrappedLocator.Frame(wrapper.WrappedElement);
+                    driver = await this.wrappedLocator.FrameAsync(wrapper.WrappedElement).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1048,12 +1047,12 @@ namespace OpenQA.Selenium.Support.Events
             /// Select the parent frame of the currently selected frame.
             /// </summary>
             /// <returns>An <see cref="IWebDriver"/> instance focused on the specified frame.</returns>
-            public IWebDriver ParentFrame()
+            public async Task<IWebDriver> ParentFrameAsync()
             {
                 IWebDriver driver = null;
                 try
                 {
-                    driver = this.wrappedLocator.ParentFrame();
+                    driver = await this.wrappedLocator.ParentFrameAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1069,12 +1068,12 @@ namespace OpenQA.Selenium.Support.Events
             /// </summary>
             /// <param name="windowName">name of the window that you wish to move to</param>
             /// <returns>A WebDriver instance that is currently in use</returns>
-            public IWebDriver Window(string windowName)
+            public async Task<IWebDriver> WindowAsync(string windowName)
             {
                 IWebDriver driver = null;
                 try
                 {
-                    driver = this.wrappedLocator.Window(windowName);
+                    driver = await this.wrappedLocator.WindowAsync(windowName).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1094,12 +1093,12 @@ namespace OpenQA.Selenium.Support.Events
             /// the driver does not support the requested type, a new browser window
             /// will be created of whatever type the driver does support.</param>
             /// <returns>An <see cref="IWebDriver"/> instance focused on the new browser.</returns>
-            public IWebDriver NewWindow(WindowType typeHint)
+            public async Task<IWebDriver> NewWindowAsync(WindowType typeHint)
             {
                 IWebDriver driver = null;
                 try
                 {
-                    driver = this.wrappedLocator.NewWindow(typeHint);
+                    driver = await this.wrappedLocator.NewWindowAsync(typeHint).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1114,12 +1113,12 @@ namespace OpenQA.Selenium.Support.Events
             /// Change the active frame to the default
             /// </summary>
             /// <returns>Element of the default</returns>
-            public IWebDriver DefaultContent()
+            public async Task<IWebDriver> DefaultContentAsync()
             {
                 IWebDriver driver = null;
                 try
                 {
-                    driver = this.wrappedLocator.DefaultContent();
+                    driver = await this.wrappedLocator.DefaultContentAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1134,12 +1133,12 @@ namespace OpenQA.Selenium.Support.Events
             /// Finds the active element on the page and returns it
             /// </summary>
             /// <returns>Element that is active</returns>
-            public IWebElement ActiveElement()
+            public async Task<IWebElement> ActiveElementAsync()
             {
                 IWebElement element = null;
                 try
                 {
-                    element = this.wrappedLocator.ActiveElement();
+                    element = await this.wrappedLocator.ActiveElementAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1154,12 +1153,12 @@ namespace OpenQA.Selenium.Support.Events
             /// Switches to the currently active modal dialog for this particular driver instance.
             /// </summary>
             /// <returns>A handle to the dialog.</returns>
-            public IAlert Alert()
+            public async Task<IAlert> AlertAsync()
             {
                 IAlert alert = null;
                 try
                 {
-                    alert = this.wrappedLocator.Alert();
+                    alert = await this.wrappedLocator.AlertAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1434,13 +1433,13 @@ namespace OpenQA.Selenium.Support.Events
             /// <summary>
             /// Method to clear the text out of an Input element
             /// </summary>
-            public void Clear()
+            public async Task ClearAsync()
             {
                 try
                 {
                     WebElementValueEventArgs e = new WebElementValueEventArgs(this.parentDriver.WrappedDriver, this.underlyingElement, null);
                     this.parentDriver.OnElementValueChanging(e);
-                    this.underlyingElement.Clear();
+                    await this.underlyingElement.ClearAsync().ConfigureAwait(false);
                     this.parentDriver.OnElementValueChanged(e);
                 }
                 catch (Exception ex)
@@ -1454,13 +1453,13 @@ namespace OpenQA.Selenium.Support.Events
             /// Method for sending native key strokes to the browser
             /// </summary>
             /// <param name="text">String containing what you would like to type onto the screen</param>
-            public void SendKeys(string text)
+            public async Task SendKeysAsync(string text)
             {
                 try
                 {
                     WebElementValueEventArgs e = new WebElementValueEventArgs(this.parentDriver.WrappedDriver, this.underlyingElement, text);
                     this.parentDriver.OnElementValueChanging(e);
-                    this.underlyingElement.SendKeys(text);
+                    await this.underlyingElement.SendKeysAsync(text).ConfigureAwait(false);
                     this.parentDriver.OnElementValueChanged(e);
                 }
                 catch (Exception ex)
@@ -1474,11 +1473,11 @@ namespace OpenQA.Selenium.Support.Events
             /// If this current element is a form, or an element within a form, then this will be submitted to the remote server.
             /// If this causes the current page to change, then this method will block until the new page is loaded.
             /// </summary>
-            public void Submit()
+            public async Task SubmitAsync()
             {
                 try
                 {
-                    this.underlyingElement.Submit();
+                    await this.underlyingElement.SubmitAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1495,13 +1494,13 @@ namespace OpenQA.Selenium.Support.Events
             /// clickable, then this operation is a no-op since it's pretty common for someone to
             /// accidentally miss  the target when clicking in Real Life
             /// </summary>
-            public void Click()
+            public async Task ClickAsync()
             {
                 try
                 {
                     WebElementEventArgs e = new WebElementEventArgs(this.parentDriver.WrappedDriver, this.underlyingElement);
                     this.parentDriver.OnElementClicking(e);
-                    this.underlyingElement.Click();
+                    await this.underlyingElement.ClickAsync().ConfigureAwait(false);
                     this.parentDriver.OnElementClicked(e);
                 }
                 catch (Exception ex)
@@ -1516,12 +1515,12 @@ namespace OpenQA.Selenium.Support.Events
             /// </summary>
             /// <param name="attributeName">Attribute you wish to get details of</param>
             /// <returns>The attribute's current value or null if the value is not set.</returns>
-            public string GetAttribute(string attributeName)
+            public async Task<string> GetAttributeAsync(string attributeName)
             {
                 string attribute = string.Empty;
                 try
                 {
-                    attribute = this.underlyingElement.GetAttribute(attributeName);
+                    attribute = await this.underlyingElement.GetAttributeAsync(attributeName).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1544,12 +1543,12 @@ namespace OpenQA.Selenium.Support.Events
             /// of an IDL property of the element, either use the <see cref="GetAttribute(string)"/>
             /// method or the <see cref="GetDomProperty(string)"/> method.
             /// </remarks>
-            public string GetDomAttribute(string attributeName)
+            public async Task<string> GetDomAttributeAsync(string attributeName)
             {
                 string attribute = string.Empty;
                 try
                 {
-                    attribute = this.underlyingElement.GetDomAttribute(attributeName);
+                    attribute = await this.underlyingElement.GetDomAttributeAsync(attributeName).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1566,12 +1565,12 @@ namespace OpenQA.Selenium.Support.Events
             /// <param name="propertyName">The name of the JavaScript property to get the value of.</param>
             /// <returns>The JavaScript property's current value. Returns a <see langword="null"/> if the
             /// value is not set or the property does not exist.</returns>
-            public string GetDomProperty(string propertyName)
+            public async Task<string> GetDomPropertyAsync(string propertyName)
             {
                 string elementProperty = string.Empty;
                 try
                 {
-                    elementProperty = this.underlyingElement.GetDomProperty(propertyName);
+                    elementProperty = await this.underlyingElement.GetDomPropertyAsync(propertyName).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1587,12 +1586,12 @@ namespace OpenQA.Selenium.Support.Events
             /// </summary>
             /// <param name="propertyName">CSS property key</param>
             /// <returns>string value of the CSS property</returns>
-            public string GetCssValue(string propertyName)
+            public async Task<string> GetCssValueAsync(string propertyName)
             {
                 string cssValue = string.Empty;
                 try
                 {
-                    cssValue = this.underlyingElement.GetCssValue(propertyName);
+                    cssValue = await this.underlyingElement.GetCssValueAsync(propertyName).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1608,12 +1607,12 @@ namespace OpenQA.Selenium.Support.Events
             /// </summary>
             /// <exception cref="NoSuchShadowRootException">Thrown when this element does not have a shadow root.</exception>
             /// <returns>A shadow root representation.</returns>
-            public ISearchContext GetShadowRoot()
+            public async Task<ISearchContext> GetShadowRootAsync()
             {
                 ISearchContext shadowRoot = null;
                 try
                 {
-                    shadowRoot = this.underlyingElement.GetShadowRoot();
+                    shadowRoot = await this.underlyingElement.GetShadowRootAsync().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -1629,14 +1628,14 @@ namespace OpenQA.Selenium.Support.Events
             /// </summary>
             /// <param name="by">By mechanism to find the element</param>
             /// <returns>IWebElement object so that you can interaction that object</returns>
-            public IWebElement FindElement(By by)
+            public async Task<IWebElement> FindElementAsync(By by)
             {
                 IWebElement wrappedElement = null;
                 try
                 {
                     FindElementEventArgs e = new FindElementEventArgs(this.parentDriver.WrappedDriver, this.underlyingElement, by);
                     this.parentDriver.OnFindingElement(e);
-                    IWebElement element = this.underlyingElement.FindElement(by);
+                    IWebElement element = await this.underlyingElement.FindElementAsync(by).ConfigureAwait(false);
                     this.parentDriver.OnFindElementCompleted(e);
                     wrappedElement = this.parentDriver.WrapElement(element);
                 }
@@ -1654,14 +1653,14 @@ namespace OpenQA.Selenium.Support.Events
             /// </summary>
             /// <param name="by">By mechanism to find the element</param>
             /// <returns>ReadOnlyCollection of IWebElement</returns>
-            public ReadOnlyCollection<IWebElement> FindElements(By by)
+            public async Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(By by)
             {
                 List<IWebElement> wrappedElementList = new List<IWebElement>();
                 try
                 {
                     FindElementEventArgs e = new FindElementEventArgs(this.parentDriver.WrappedDriver, this.underlyingElement, by);
                     this.parentDriver.OnFindingElement(e);
-                    ReadOnlyCollection<IWebElement> elements = this.underlyingElement.FindElements(by);
+                    ReadOnlyCollection<IWebElement> elements = await this.underlyingElement.FindElementsAsync(by).ConfigureAwait(false);
                     this.parentDriver.OnFindElementCompleted(e);
                     foreach (IWebElement element in elements)
                     {
@@ -1682,7 +1681,7 @@ namespace OpenQA.Selenium.Support.Events
             /// Gets a <see cref="Screenshot"/> object representing the image of the page on the screen.
             /// </summary>
             /// <returns>A <see cref="Screenshot"/> object containing the image.</returns>
-            public Screenshot GetScreenshot()
+            public async Task<Screenshot> GetScreenshotAsync()
             {
                 ITakesScreenshot screenshotDriver = this.underlyingElement as ITakesScreenshot;
                 if (this.underlyingElement == null)
@@ -1691,7 +1690,7 @@ namespace OpenQA.Selenium.Support.Events
                 }
 
                 Screenshot screen = null;
-                screen = screenshotDriver.GetScreenshot();
+                screen = await screenshotDriver.GetScreenshotAsync();
                 return screen;
             }
 

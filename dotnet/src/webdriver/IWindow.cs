@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -40,16 +41,16 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Maximizes the current window if it is not already maximized.
         /// </summary>
-        void Maximize();
+        Task MaximizeAsync();
 
         /// <summary>
         /// Minimizes the current window if it is not already minimized.
         /// </summary>
-        void Minimize();
+        Task MinimizeAsync();
 
         /// <summary>
         /// Sets the current window to full screen if it is not already in that state.
         /// </summary>
-        void FullScreen();
+        Task FullScreenAsync();
     }
 }

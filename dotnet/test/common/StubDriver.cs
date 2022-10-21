@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -38,7 +39,7 @@ namespace OpenQA.Selenium
             get { throw new NotImplementedException(); }
         }
 
-        public void Close()
+        public Task CloseAsync()
         {
             throw new NotImplementedException();
         }
@@ -77,12 +78,12 @@ namespace OpenQA.Selenium
 
         #region ISearchContext Members
 
-        public IWebElement FindElement(By by)
+        public Task<IWebElement> FindElementAsync(By by)
         {
             throw new NotImplementedException();
         }
 
-        public System.Collections.ObjectModel.ReadOnlyCollection<IWebElement> FindElements(By by)
+        public Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(By by)
         {
             throw new NotImplementedException();
         }

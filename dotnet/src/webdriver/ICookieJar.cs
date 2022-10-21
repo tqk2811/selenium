@@ -1,4 +1,4 @@
-﻿// <copyright file="ICookieJar.cs" company="WebDriver Committers">
+// <copyright file="ICookieJar.cs" company="WebDriver Committers">
 // Licensed to the Software Freedom Conservancy (SFC) under one
 // or more contributor license agreements. See the NOTICE file
 // distributed with this work for additional information
@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -34,7 +35,7 @@ namespace OpenQA.Selenium
         /// Adds a cookie to the current page.
         /// </summary>
         /// <param name="cookie">The <see cref="Cookie"/> object to be added.</param>
-        void AddCookie(Cookie cookie);
+        Task AddCookieAsync(Cookie cookie);
 
         /// <summary>
         /// Gets a cookie with the specified name.
@@ -42,23 +43,29 @@ namespace OpenQA.Selenium
         /// <param name="name">The name of the cookie to retrieve.</param>
         /// <returns>The <see cref="Cookie"/> containing the name. Returns <see langword="null"/>
         /// if no cookie with the specified name is found.</returns>
-        Cookie GetCookieNamed(string name);
+        Task<Cookie> GetCookieNamedAsync(string name);
 
         /// <summary>
         /// Deletes the specified cookie from the page.
         /// </summary>
         /// <param name="cookie">The <see cref="Cookie"/> to be deleted.</param>
-        void DeleteCookie(Cookie cookie);
+        Task DeleteCookieAsync(Cookie cookie);
 
         /// <summary>
         /// Deletes the cookie with the specified name from the page.
         /// </summary>
         /// <param name="name">The name of the cookie to be deleted.</param>
-        void DeleteCookieNamed(string name);
+        Task DeleteCookieNamedAsync(string name);
 
         /// <summary>
         /// Deletes all cookies from the page.
         /// </summary>
-        void DeleteAllCookies();
+        Task DeleteAllCookiesAsync();
+
+        /// <summary>
+        /// Method for getting a Collection of Cookies that are present in the browser
+        /// </summary>
+        /// <returns>ReadOnlyCollection of Cookies in the browser</returns>
+        Task<ReadOnlyCollection<Cookie>> GetAllCookiesAsync();
     }
 }

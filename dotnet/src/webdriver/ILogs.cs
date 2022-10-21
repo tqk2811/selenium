@@ -1,4 +1,4 @@
-﻿// <copyright file="ILogs.cs" company="WebDriver Committers">
+// <copyright file="ILogs.cs" company="WebDriver Committers">
 // Licensed to the Software Freedom Conservancy (SFC) under one
 // or more contributor license agreements. See the NOTICE file
 // distributed with this work for additional information
@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -36,6 +37,6 @@ namespace OpenQA.Selenium
         /// <param name="logKind">The log for which to retrieve the log entries.
         /// Log types can be found in the <see cref="LogType"/> class.</param>
         /// <returns>The list of <see cref="LogEntry"/> objects for the specified log.</returns>
-        ReadOnlyCollection<LogEntry> GetLog(string logKind);
+        Task<ReadOnlyCollection<LogEntry>> GetLogAsync(string logKind);
     }
 }

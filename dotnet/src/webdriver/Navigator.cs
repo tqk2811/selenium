@@ -17,6 +17,8 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -39,49 +41,56 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Move the browser back
         /// </summary>
-        public void Back()
+        public Task BackAsync()
         {
-            this.driver.InternalExecute(DriverCommand.GoBack, null);
+            return this.driver.InternalExecuteAsync(DriverCommand.GoBack, null);
         }
 
         /// <summary>
         /// Move the browser forward
         /// </summary>
-        public void Forward()
+        public Task ForwardAsync()
         {
-            this.driver.InternalExecute(DriverCommand.GoForward, null);
+            return this.driver.InternalExecuteAsync(DriverCommand.GoForward, null);
         }
 
         /// <summary>
         /// Navigate to a url for your test
         /// </summary>
         /// <param name="url">String of where you want the browser to go to</param>
-        public void GoToUrl(string url)
+        public async Task GoToUrlAsync(string url)
         {
-            this.driver.Url = url;
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url), "Argument 'url' cannot be null.");
+            }
+
+            Dictionary<string, object> parameters = new Dictionary<string, object>();
+            parameters.Add("url", url);
+            await this.driver.InternalExecuteAsync(DriverCommand.Get, parameters).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Navigate to a url for your test
         /// </summary>
         /// <param name="url">Uri object of where you want the browser to go to</param>
-        public void GoToUrl(Uri url)
+        public Task GoToUrlAsync(Uri url)
         {
             if (url == null)
             {
                 throw new ArgumentNullException(nameof(url), "URL cannot be null.");
             }
 
-            this.driver.Url = url.ToString();
+            return GoToUrlAsync(url.ToString());
         }
 
         /// <summary>
         /// Refresh the browser
         /// </summary>
-        public void Refresh()
+        public Task RefreshAsync()
         {
             // driver.SwitchTo().DefaultContent();
-            this.driver.InternalExecute(DriverCommand.Refresh, null);
+            return this.driver.InternalExecuteAsync(DriverCommand.Refresh, null);
         }
     }
 }

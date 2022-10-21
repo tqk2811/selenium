@@ -17,6 +17,7 @@
 // </copyright>
 
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -48,7 +49,7 @@ namespace OpenQA.Selenium
             get
             {
                 Response commandResponse;
-                commandResponse = this.driver.InternalExecute(DriverCommand.GetWindowRect, null);
+                commandResponse = this.driver.InternalExecuteAsync(DriverCommand.GetWindowRect, null).ConfigureAwait(false).GetAwaiter().GetResult();
 
                 Dictionary<string, object> rawPosition = (Dictionary<string, object>)commandResponse.Value;
                 int x = Convert.ToInt32(rawPosition["x"], CultureInfo.InvariantCulture);
@@ -61,7 +62,7 @@ namespace OpenQA.Selenium
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("x", value.X);
                 parameters.Add("y", value.Y);
-                this.driver.InternalExecute(DriverCommand.SetWindowRect, parameters);
+                this.driver.InternalExecuteAsync(DriverCommand.SetWindowRect, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
@@ -74,7 +75,7 @@ namespace OpenQA.Selenium
             get
             {
                 Response commandResponse;
-                commandResponse = this.driver.InternalExecute(DriverCommand.GetWindowRect, null);
+                commandResponse = this.driver.InternalExecuteAsync(DriverCommand.GetWindowRect, null).ConfigureAwait(false).GetAwaiter().GetResult();
                 Dictionary<string, object> rawPosition = (Dictionary<string, object>)commandResponse.Value;
                 int height = Convert.ToInt32(rawPosition["height"], CultureInfo.InvariantCulture);
                 int width = Convert.ToInt32(rawPosition["width"], CultureInfo.InvariantCulture);
@@ -86,35 +87,35 @@ namespace OpenQA.Selenium
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 parameters.Add("width", value.Width);
                 parameters.Add("height", value.Height);
-                this.driver.InternalExecute(DriverCommand.SetWindowRect, parameters);
+                this.driver.InternalExecuteAsync(DriverCommand.SetWindowRect, parameters).ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
 
         /// <summary>
         /// Maximizes the current window if it is not already maximized.
         /// </summary>
-        public void Maximize()
+        public Task MaximizeAsync()
         {
             Dictionary<string, object> parameters = null;
-            this.driver.InternalExecute(DriverCommand.MaximizeWindow, parameters);
+            return this.driver.InternalExecuteAsync(DriverCommand.MaximizeWindow, parameters);
         }
 
         /// <summary>
         /// Minimizes the current window if it is not already minimized.
         /// </summary>
-        public void Minimize()
+        public Task MinimizeAsync()
         {
             Dictionary<string, object> parameters = null;
-            this.driver.InternalExecute(DriverCommand.MinimizeWindow, parameters);
+            return this.driver.InternalExecuteAsync(DriverCommand.MinimizeWindow, parameters);
         }
 
         /// <summary>
         /// Sets the current window to full screen if it is not already in that state.
         /// </summary>
-        public void FullScreen()
+        public Task FullScreenAsync()
         {
             Dictionary<string, object> parameters = null;
-            this.driver.InternalExecute(DriverCommand.FullScreenWindow, parameters);
+            return this.driver.InternalExecuteAsync(DriverCommand.FullScreenWindow, parameters);
         }
     }
 }

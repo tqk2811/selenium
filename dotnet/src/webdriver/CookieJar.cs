@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -43,49 +44,49 @@ namespace OpenQA.Selenium
         /// </summary>
         public ReadOnlyCollection<Cookie> AllCookies
         {
-            get { return this.GetAllCookies(); }
+            get { return this.GetAllCookiesAsync().ConfigureAwait(false).GetAwaiter().GetResult(); }
         }
 
         /// <summary>
         /// Method for creating a cookie in the browser
         /// </summary>
         /// <param name="cookie"><see cref="Cookie"/> that represents a cookie in the browser</param>
-        public void AddCookie(Cookie cookie)
+        public Task AddCookieAsync(Cookie cookie)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("cookie", cookie);
-            this.driver.InternalExecute(DriverCommand.AddCookie, parameters);
+            return this.driver.InternalExecuteAsync(DriverCommand.AddCookie, parameters);
         }
 
         /// <summary>
         /// Delete the cookie by passing in the name of the cookie
         /// </summary>
         /// <param name="name">The name of the cookie that is in the browser</param>
-        public void DeleteCookieNamed(string name)
+        public Task DeleteCookieNamedAsync(string name)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             parameters.Add("name", name);
-            this.driver.InternalExecute(DriverCommand.DeleteCookie, parameters);
+            return this.driver.InternalExecuteAsync(DriverCommand.DeleteCookie, parameters);
         }
 
         /// <summary>
         /// Delete a cookie in the browser by passing in a copy of a cookie
         /// </summary>
         /// <param name="cookie">An object that represents a copy of the cookie that needs to be deleted</param>
-        public void DeleteCookie(Cookie cookie)
+        public async Task DeleteCookieAsync(Cookie cookie)
         {
             if (cookie != null)
             {
-                this.DeleteCookieNamed(cookie.Name);
+                await this.DeleteCookieNamedAsync(cookie.Name);
             }
         }
 
         /// <summary>
         /// Delete All Cookies that are present in the browser
         /// </summary>
-        public void DeleteAllCookies()
+        public Task DeleteAllCookiesAsync()
         {
-            this.driver.InternalExecute(DriverCommand.DeleteAllCookies, null);
+            return this.driver.InternalExecuteAsync(DriverCommand.DeleteAllCookies, null);
         }
 
         /// <summary>
@@ -93,12 +94,12 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="name">name of the cookie that needs to be returned</param>
         /// <returns>A Cookie from the name</returns>
-        public Cookie GetCookieNamed(string name)
+        public async Task<Cookie> GetCookieNamedAsync(string name)
         {
             Cookie cookieToReturn = null;
             if (name != null)
             {
-                ReadOnlyCollection<Cookie> allCookies = this.AllCookies;
+                ReadOnlyCollection<Cookie> allCookies = await GetAllCookiesAsync().ConfigureAwait(false);
                 foreach (Cookie currentCookie in allCookies)
                 {
                     if (name.Equals(currentCookie.Name))
@@ -116,10 +117,10 @@ namespace OpenQA.Selenium
         /// Method for getting a Collection of Cookies that are present in the browser
         /// </summary>
         /// <returns>ReadOnlyCollection of Cookies in the browser</returns>
-        private ReadOnlyCollection<Cookie> GetAllCookies()
+        public async Task<ReadOnlyCollection<Cookie>> GetAllCookiesAsync()
         {
             List<Cookie> toReturn = new List<Cookie>();
-            object returned = this.driver.InternalExecute(DriverCommand.GetAllCookies, new Dictionary<string, object>()).Value;
+            object returned = (await this.driver.InternalExecuteAsync(DriverCommand.GetAllCookies, new Dictionary<string, object>()).ConfigureAwait(false)).Value;
 
             try
             {

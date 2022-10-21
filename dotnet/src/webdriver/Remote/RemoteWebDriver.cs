@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using OpenQA.Selenium.DevTools;
 using OpenQA.Selenium.Internal;
 
@@ -408,12 +409,12 @@ namespace OpenQA.Selenium.Remote
             return this.FindElements("css selector", cssSelector);
         }
 
-        public DevToolsSession GetDevToolsSession()
+        public Task<DevToolsSession> GetDevToolsSessionAsync()
         {
-            return GetDevToolsSession(DevToolsSession.AutoDetectDevToolsProtocolVersion);
+            return GetDevToolsSessionAsync(DevToolsSession.AutoDetectDevToolsProtocolVersion);
         }
 
-        public DevToolsSession GetDevToolsSession(int protocolVersion)
+        public async Task<DevToolsSession> GetDevToolsSessionAsync(int protocolVersion)
         {
             if (this.devToolsSession == null)
             {
@@ -439,7 +440,7 @@ namespace OpenQA.Selenium.Remote
                 try
                 {
                     DevToolsSession session = new DevToolsSession(debuggerAddress);
-                    session.StartSession(devToolsProtocolVersion).ConfigureAwait(false).GetAwaiter().GetResult();
+                    await session.StartSession(devToolsProtocolVersion).ConfigureAwait(false);
                     this.devToolsSession = session;
                 }
                 catch (Exception e)
@@ -454,11 +455,11 @@ namespace OpenQA.Selenium.Remote
         /// <summary>
         /// Closes a DevTools session.
         /// </summary>
-        public void CloseDevToolsSession()
+        public async Task CloseDevToolsSessionAsync()
         {
             if (this.devToolsSession != null)
             {
-                this.devToolsSession.StopSession(true).ConfigureAwait(false).GetAwaiter().GetResult();
+                await this.devToolsSession.StopSession(true).ConfigureAwait(false);
             }
         }
 

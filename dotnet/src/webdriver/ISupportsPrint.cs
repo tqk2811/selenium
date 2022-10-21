@@ -16,6 +16,8 @@
 // limitations under the License.
 // </copyright>
 
+using System.Threading.Tasks;
+
 namespace OpenQA.Selenium
 {
     /// <summary>
@@ -28,6 +30,6 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="printOptions">A <see cref="PrintOptions"/> object describing the options of the printed document.</param>
         /// <returns>The <see cref="PrintDocument"/> object containing the PDF-formatted print representation of the page.</returns>
-        PrintDocument Print(PrintOptions options);
+        Task<PrintDocument> PrintAsync(PrintOptions printOptions);
     }
 }

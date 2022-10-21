@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -60,7 +61,7 @@ namespace OpenQA.Selenium
         /// variable, as if the function were called via "Function.apply"
         /// </para>
         /// </remarks>
-        object ExecuteScript(string script, params object[] args);
+        Task<object> ExecuteScriptAsync(string script, params object[] args);
 
         /// <summary>
         /// Executes JavaScript in the context of the currently selected frame or window.
@@ -97,7 +98,7 @@ namespace OpenQA.Selenium
         /// variable, as if the function were called via "Function.apply"
         /// </para>
         /// </remarks>
-        object ExecuteScript(PinnedScript script, params object[] args);
+        Task<object> ExecuteScriptAsync(PinnedScript script, params object[] args);
 
         /// <summary>
         /// Executes JavaScript asynchronously in the context of the currently selected frame or window.
@@ -105,6 +106,6 @@ namespace OpenQA.Selenium
         /// <param name="script">The JavaScript code to execute.</param>
         /// <param name="args">The arguments to the script.</param>
         /// <returns>The value returned by the script.</returns>
-        object ExecuteAsyncScript(string script, params object[] args);
+        Task<object> ExecuteAsyncScriptAsync(string script, params object[] args);
     }
 }

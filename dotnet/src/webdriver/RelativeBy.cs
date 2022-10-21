@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using OpenQA.Selenium.Internal;
 
 namespace OpenQA.Selenium
@@ -81,9 +82,9 @@ namespace OpenQA.Selenium
         /// </summary>
         /// <param name="context">An <see cref="ISearchContext"/> object to use to search for the elements.</param>
         /// <returns>The first matching <see cref="IWebElement"/> on the current context.</returns>
-        public override IWebElement FindElement(ISearchContext context)
+        public override async Task<IWebElement> FindElementAsync(ISearchContext context)
         {
-            ReadOnlyCollection<IWebElement> elements = FindElements(context);
+            ReadOnlyCollection<IWebElement> elements = await FindElementsAsync(context);
             if (elements.Count == 0)
             {
                 throw new NoSuchElementException("Unable to find element");
@@ -98,7 +99,7 @@ namespace OpenQA.Selenium
         /// <param name="context">An <see cref="ISearchContext"/> object to use to search for the elements.</param>
         /// <returns>A <see cref="ReadOnlyCollection{T}"/> of all <see cref="IWebElement">WebElements</see>
         /// matching the current criteria, or an empty list if nothing matches.</returns>
-        public override ReadOnlyCollection<IWebElement> FindElements(ISearchContext context)
+        public override async Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(ISearchContext context)
         {
             IJavaScriptExecutor js = GetExecutor(context);
             Dictionary<string, object> parameters = new Dictionary<string, object>();
@@ -106,7 +107,7 @@ namespace OpenQA.Selenium
             filterParameters["root"] = this.GetSerializableObject(this.root);
             filterParameters["filters"] = this.filters;
             parameters["relative"] = filterParameters;
-            object rawElements = js.ExecuteScript(wrappedAtom, parameters);
+            object rawElements = await js.ExecuteScriptAsync(wrappedAtom, parameters).ConfigureAwait(false);
             ReadOnlyCollection<IWebElement> elements = rawElements as ReadOnlyCollection<IWebElement>;
             return elements;
         }

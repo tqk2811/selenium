@@ -18,6 +18,7 @@
 
 using System;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -92,7 +93,7 @@ namespace OpenQA.Selenium
         /// method will clear the value. It has no effect on other elements. Text entry elements
         /// are defined as elements with INPUT or TEXTAREA tags.</remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        void Clear();
+        Task ClearAsync();
 
         /// <summary>
         /// Simulates typing text into the element.
@@ -105,7 +106,7 @@ namespace OpenQA.Selenium
         /// <exception cref="InvalidElementStateException">Thrown when the target element is not enabled.</exception>
         /// <exception cref="ElementNotVisibleException">Thrown when the target element is not visible.</exception>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        void SendKeys(string text);
+        Task SendKeysAsync(string text);
 
         /// <summary>
         /// Submits this element to the web server.
@@ -114,7 +115,7 @@ namespace OpenQA.Selenium
         /// then this will be submitted to the web server. If this causes the current
         /// page to change, then this method will block until the new page is loaded.</remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        void Submit();
+        Task SubmitAsync();
 
         /// <summary>
         /// Clicks this element.
@@ -135,7 +136,7 @@ namespace OpenQA.Selenium
         /// </remarks>
         /// <exception cref="ElementNotVisibleException">Thrown when the target element is not visible.</exception>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        void Click();
+        Task ClickAsync();
 
         /// <summary>
         /// Gets the value of the specified attribute for this element.
@@ -171,7 +172,7 @@ namespace OpenQA.Selenium
         /// </list>
         /// </remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        string GetAttribute(string attributeName);
+        Task<string> GetAttributeAsync(string attributeName);
 
         /// <summary>
         /// Gets the value of a declared HTML attribute of this element.
@@ -186,7 +187,7 @@ namespace OpenQA.Selenium
         /// of an IDL property of the element, either use the <see cref="GetAttribute(string)"/>
         /// method or the <see cref="GetDomProperty(string)"/> method.
         /// </remarks>
-        string GetDomAttribute(string attributeName);
+        Task<string> GetDomAttributeAsync(string attributeName);
 
         /// <summary>
         /// Gets the value of a JavaScript property of this element.
@@ -195,7 +196,7 @@ namespace OpenQA.Selenium
         /// <returns>The JavaScript property's current value. Returns a <see langword="null"/> if the
         /// value is not set or the property does not exist.</returns>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        string GetDomProperty(string propertyName);
+        Task<string> GetDomPropertyAsync(string propertyName);
 
         /// <summary>
         /// Gets the value of a CSS property of this element.
@@ -208,13 +209,13 @@ namespace OpenQA.Selenium
         /// "background-color" property set as "green" in the HTML source, will
         /// return "#008000" for its value.</remarks>
         /// <exception cref="StaleElementReferenceException">Thrown when the target element is no longer valid in the document DOM.</exception>
-        string GetCssValue(string propertyName);
+        Task<string> GetCssValueAsync(string propertyName);
 
         /// <summary>
         /// Gets the representation of an element's shadow root for accessing the shadow DOM of a web component.
         /// </summary>
         /// <exception cref="NoSuchShadowRootException">Thrown when this element does not have a shadow root.</exception>
         /// <returns>A shadow root representation.</returns>
-        ISearchContext GetShadowRoot();
+        Task<ISearchContext> GetShadowRootAsync();
     }
 }

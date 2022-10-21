@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -31,7 +32,7 @@ namespace OpenQA.Selenium
         /// <param name="by">The locating mechanism to use.</param>
         /// <returns>The first matching <see cref="IWebElement"/> on the current context.</returns>
         /// <exception cref="NoSuchElementException">If no element matches the criteria.</exception>
-        IWebElement FindElement(By by);
+        Task<IWebElement> FindElementAsync(By by);
 
         /// <summary>
         /// Finds all <see cref="IWebElement">IWebElements</see> within the current context
@@ -40,6 +41,6 @@ namespace OpenQA.Selenium
         /// <param name="by">The locating mechanism to use.</param>
         /// <returns>A <see cref="ReadOnlyCollection{T}"/> of all <see cref="IWebElement">WebElements</see>
         /// matching the current criteria, or an empty list if nothing matches.</returns>
-        ReadOnlyCollection<IWebElement> FindElements(By by);
+        Task<ReadOnlyCollection<IWebElement>> FindElementsAsync(By by);
     }
 }

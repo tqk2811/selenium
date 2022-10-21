@@ -17,6 +17,7 @@
 // </copyright>
 
 using System;
+using System.Threading.Tasks;
 
 namespace OpenQA.Selenium
 {
@@ -29,13 +30,13 @@ namespace OpenQA.Selenium
         /// <summary>
         /// Move back a single entry in the browser's history.
         /// </summary>
-        void Back();
+        Task BackAsync();
 
         /// <summary>
         /// Move a single "item" forward in the browser's history.
         /// </summary>
         /// <remarks>Does nothing if we are on the latest page viewed.</remarks>
-        void Forward();
+        Task ForwardAsync();
 
         /// <summary>
         ///  Load a new web page in the current browser window.
@@ -50,7 +51,7 @@ namespace OpenQA.Selenium
         /// should the underlying page change while your test is executing the results of
         /// future calls against this interface will be against the freshly loaded page.
         /// </remarks>
-        void GoToUrl(string url);
+        Task GoToUrlAsync(string url);
 
         /// <summary>
         ///  Load a new web page in the current browser window.
@@ -65,11 +66,11 @@ namespace OpenQA.Selenium
         /// should the underlying page change while your test is executing the results of
         /// future calls against this interface will be against the freshly loaded page.
         /// </remarks>
-        void GoToUrl(Uri url);
+        Task GoToUrlAsync(Uri url);
 
         /// <summary>
         /// Refreshes the current page.
         /// </summary>
-        void Refresh();
+        Task RefreshAsync();
     }
 }
